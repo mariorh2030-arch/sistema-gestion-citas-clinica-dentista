@@ -1,6 +1,6 @@
 import pool from "../config/db";
 
-export const obtenerUsuarioPorCorreo = async (usuario) => {
+export const obtenerUsuario = async (usuario) => {
     const [rows] = await pool.query(`
         SELECT 
         nombreUsuario AS usuario,
