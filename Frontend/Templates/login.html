@@ -12,21 +12,24 @@
     <div class="contenedor">
         <div class="contenedor-form">
             <div>
-                <img src="/Frontend/Statics/logo-dentista.png" alt="">
+                <img src="../Statics/logo-dentista.png" alt="">
             </div>
             <div>
 
                 <div>
                     <label for="">Usuario</label>
-                    <input type="text">
+                    <input type="text" id="usuario">
                 </div>
                 <div>
                     <label for="">Contraseña</label>
-                    <input type="text">
+                    <input type="text" id="password">
+                </div>
+                <div>
+                    <button id="btn_acceder">Acceder</button>
                 </div>
             </div>
         </div>
     </div>
 </body>
-<script src="../JS/api/login.api.js"></script>
+<script src="../JS/api/auth.api.js"></script>
 </html>

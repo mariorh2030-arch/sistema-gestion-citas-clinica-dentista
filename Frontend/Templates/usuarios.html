@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios | Clínica Dental</title>
+    <link rel="stylesheet" href="../Css/usuariosStyles.css">
+</head>
+<body>
+    <div class="page-actions">
+        <button type="button" id="btn_abrir_modal" class="btn-abrir-modal">+ Agregar usuario</button>
+    </div>
+
+    <div class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <p class="modal-eyebrow">Seguridad y acceso</p>
+                    <h2 id="modalTitulo">Registrar usuario</h2>
+                </div>
+                <button type="button" class="modal-close" id="btn_cerrar_modal" aria-label="Cerrar">×</button>
+            </div>
+
+            <div class="contenedor-form">
+                <div class="grupo-datos">
+                    <label for="nombreUsuario">Nombre de usuario</label>
+                    <input type="text" id="nombreUsuario" placeholder="admin">
+                </div>
+
+                <div class="grupo-datos">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••">
+                </div>
+
+                <div class="grupo-datos span-2">
+                    <label for="rol">Rol</label>
+                    <select id="rol">
+                        <option value="">Selecciona un rol</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Asistente">Asistente</option>
+                        <option value="Dentista">Dentista</option>
+                    </select>
+                </div>
+
+                <button id="btn_guardar" class="span-2">+ Agregar usuario</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-wrap">
+        <div class="herramientas">
+            <div class="buscador">
+                <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-search">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 15.75-2.489-2.489m0 0a3.375 3.375 0 1 0-4.773-4.773 3.375 3.375 0 0 0 4.774 4.774ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </span>
+                <input id="buscarUsuario" type="search" placeholder="Buscar usuario">
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaUsuarios"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module" src="../JS/api/usuarios.api.js"></script>
+</body>
+</html>
