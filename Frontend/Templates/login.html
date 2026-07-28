@@ -1,35 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../Css/loginStyles.css">
-    <title>Document</title>
+    <title>Login | Clínica dental</title>
 </head>
 <body>
-    <div class="contenedor">
-        <div class="contenedor-form">
-            <div>
-                <img src="../Statics/logo-dentista.png" alt="">
+    <div class="page-wrapper">
+        <section class="hero-panel">
+            <div class="hero-copy">
+                <span>Bienvenido a</span>
+                <h1>Panel de administración</h1>
+                <p>Accede a tu cuenta y administra las citas, pacientes y tratamientos de la clínica dental.</p>
             </div>
-            <div>
+            <div class="hero-visual">
+                <img src="../Statics/logo-dentista.png" alt="Logo de clínica dentista">
+            </div>
+        </section>
 
-                <div>
-                    <label for="">Usuario</label>
-                    <input type="text" id="usuario">
+        <main class="login-card">
+            <div class="login-header">
+                <div class="brand-circle">
+                    <img src="../Statics/logo-dentista.png" alt="Logo clínica">
                 </div>
                 <div>
-                    <label for="">Contraseña</label>
-                    <input type="text" id="password">
-                </div>
-                <div>
-                    <button id="btn_acceder">Acceder</button>
+                    <p>Inicia sesión</p>
+                    <h2>Accede a tu cuenta</h2>
                 </div>
             </div>
-        </div>
+
+            <form class="login-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="usuario">Usuario</label>
+                    <input type="text" id="usuario" placeholder="ejemplo@clinicadental.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <div class="form-extras">
+                    <label class="checkbox-wrap">
+                        <input type="checkbox" id="remember">
+                        <span>Recuérdame</span>
+                    </label>
+                    <a href="#">¿Olvidaste tu contraseña?</a>
+                </div>
+                <button id="btn_acceder" type="button" class="btn-primary">Acceder</button>
+            </form>
+        </main>
     </div>
+
+    <script src="../JS/api/auth.api.js"></script>
 </body>
-<script src="../JS/api/auth.api.js"></script>
 </html>
