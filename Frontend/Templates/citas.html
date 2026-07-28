@@ -15,7 +15,16 @@
             <img class="logo" src="../Statics/logo-dentista.png" alt="logo de clinica dentista">
             <div class="datos-admin">
                 <span>Administrador</span>
-                <img class="logo-admin" src="../Statics/logo-admin.jpg" alt="administrador">
+                <div class="dropdown">
+                    <button onclick="toggleDropdown()" class="drop-btn">
+                        <img class="logo-admin" src="../Statics/logo-admin.jpg" alt="administrador">
+                    </button>
+                    <div id="myDropdown" class="dropdown-content">
+                        <a href="">Perfil</a>
+                        <a href="">Configuracion</a>
+                        <a id="salir" href="">Cerrar Sesion</a>
+                    </div>
+                </div>
             </div>
         </div>
         

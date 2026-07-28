@@ -14,11 +14,21 @@ const buscar = document.getElementById("buscar");
 const btnAbrirModal = document.getElementById("btn_abrir");
 const btnCancelar = document.getElementById("btn_cancelar");
 const selectEstado = document.getElementById("selectFiltroEstado");
+const salir = document.getElementById("salir");
 const token = localStorage.getItem("token");
+
 
 let citaEditado = null;
 const URL_TRATAMIENTOS = "/api/tratamientos";
 const URL_CITAS = "/api/citas";
+
+const cerrarSesion = () => {
+    localStorage.removeItem("token");
+    window.location.href = "../Templates/login.html";
+}
+function toggleDropdown() {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
 
 const parseResponse = async (response) => {
     const text = await response.text();
@@ -437,6 +447,19 @@ btn_guardar.addEventListener('click', async () => {
         btn_guardar.disabled = false;
     }
 });
+window.onclick = function(event) {
+  if (!event.target.closest('.drop-btn')) {
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    for (var i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
+
+salir.addEventListener('click', cerrarSesion)
 
 
 if (!token){
