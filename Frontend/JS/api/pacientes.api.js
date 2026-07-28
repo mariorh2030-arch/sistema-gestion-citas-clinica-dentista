@@ -8,12 +8,17 @@ const inputFecha = document.getElementById("fecha");
 const inputCorreo = document.getElementById("correo")
 const inputTelefono = document.getElementById("numero");
 const tabla = document.getElementById("tablaPacientes");
+const token = localStorage.getItem("token");
 let pacienteEditando = null;
 
 const URL_API = "http://localhost:3000/api/pacientes";
 
 export const obtenerPacientes = async () => {
-    const response = await fetch(URL_API);
+    const response = await fetch(URL_API, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
 
     if(!response.ok)
     {
@@ -36,7 +41,8 @@ export const crearPaciente = async () => {
     const response = await fetch(URL_API, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(paciente)
     });
@@ -47,7 +53,10 @@ export const crearPaciente = async () => {
 
 const eliminarPacientes = async (id) => {
     const respuesta = await fetch(`http://localhost:3000/api/pacientes/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
     });
 
     return await respuesta.json();
@@ -79,7 +88,8 @@ const actualizarPaciente = async (id) => {
     const response = await fetch(`http://localhost:3000/api/pacientes/${id}`, {
         method: "PUT",
          headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(paciente)
     });
@@ -193,4 +203,8 @@ if (modalOverlay) {
             cerrarModal();
         }
     });
+}
+
+if (!token){
+    window.location.href = "../Templates/login.html"
 }

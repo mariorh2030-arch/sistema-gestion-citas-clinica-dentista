@@ -1,15 +1,17 @@
 import pool from "../config/db.js";
 
-export const obtenerUsuario = async (usuario, password) => {
+export const obtenerUsuario = async (usuario) => {
     const [rows] = await pool.query(
         `
         SELECT
+            id,
             nombreUsuario AS usuario,
-            password
+            password,
+            rol
         FROM usuarios
         WHERE nombreUsuario = ?
         `,
-        [usuario, password]
+        [usuario]
     );
 
     return rows[0];

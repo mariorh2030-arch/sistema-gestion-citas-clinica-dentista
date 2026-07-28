@@ -7,12 +7,13 @@ import {
     putCita,
     putEstadoCita
 } from "../Controllers/citas.controller.js";
+import { verificarToken } from "../Middleware/auth.middleware.js";
 const router = express.Router();
 export default router;
 
-router.post("/", agendarCita);
-router.get("/", getCitas);
-router.get("/:id", getCitasById);
-router.delete("/:id", deleteCita);
-router.put("/:id", putCita);
-router.patch("/:id/estado", putEstadoCita);
+router.post("/",verificarToken, agendarCita);
+router.get("/",verificarToken, getCitas);
+router.get("/:id",verificarToken, getCitasById);
+router.delete("/:id",verificarToken, deleteCita);
+router.put("/:id",verificarToken, putCita);
+router.patch("/:id/estado", verificarToken, putEstadoCita);

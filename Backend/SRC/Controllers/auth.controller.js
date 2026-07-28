@@ -8,15 +8,15 @@ export const autentificarUsuario = async (req, res) => {
      const{ 
         usuario,
         password
-        } = req.body;
+    } = req.body;
     
-    const passwordHash = await bcrypt.hash(password, 10);
-    const getUsuario   = await obtenerUsuario(usuario, passwordHash);
+    const getUsuario   = await obtenerUsuario(usuario);
     if(!getUsuario){
         return res.status(404).json({
             mensaje:  "Error usuario o contraseña incorrectos"
         });
     }
+    
 
     const coincide = await bcrypt.compare(password, getUsuario.password);
     if(!coincide){
@@ -24,6 +24,12 @@ export const autentificarUsuario = async (req, res) => {
             mensaje: "Error usuario o contraseña incorrectos"
         })
     }
+    const payload = {
+        id: getUsuario.id,
+        usuario: getUsuario.usuario,
+        rol: getUsuario.rol
+    }
+    
     const token = jwt.sign(
     payload,
     process.env.JWT_SECRET,

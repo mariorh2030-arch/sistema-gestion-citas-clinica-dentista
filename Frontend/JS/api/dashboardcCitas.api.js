@@ -14,7 +14,7 @@ const buscar = document.getElementById("buscar");
 const btnAbrirModal = document.getElementById("btn_abrir");
 const btnCancelar = document.getElementById("btn_cancelar");
 const selectEstado = document.getElementById("selectFiltroEstado");
-
+const token = localStorage.getItem("token");
 
 let citaEditado = null;
 const URL_TRATAMIENTOS = "/api/tratamientos";
@@ -39,7 +39,9 @@ const validarEmail = (email) => {
 
 const cargarTratamientosEnSelect = async () => {
     try {
-        const response = await fetch(URL_TRATAMIENTOS);
+        const response = await fetch(URL_TRATAMIENTOS, {
+            Authorization: `Bearer ${token}`
+        });
         const tratamientos = await response.json();
 
         if (!response.ok) {
@@ -63,7 +65,11 @@ const cargarTratamientosEnSelect = async () => {
 };
 
 const obtenerCitas = async () => {
-    const response = await fetch(URL_CITAS);
+    const response = await fetch(URL_CITAS, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
 
     if (!response.ok) {
         const data = await parseResponse(response);
@@ -75,7 +81,11 @@ const obtenerCitas = async () => {
 };
 
 const obtenerCitasPorId = async (id) => {
-    const response = await fetch(`${URL_CITAS}/${id}`);
+    const response = await fetch(`${URL_CITAS}/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
 
     if (!response.ok) {
         const data = await parseResponse(response);
@@ -129,7 +139,10 @@ const buscarCita = async () => {
 
 const eliminarCita = async (id) => {
     const response = await fetch(`${URL_CITAS}/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
     });
 
     const data = await parseResponse(response);
@@ -213,7 +226,8 @@ const guardarCita = async () => {
     const response = await fetch(URL_CITAS, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(nuevaCita)
     });
@@ -236,7 +250,8 @@ const actualizarCita = async (id) => {
     const response = await fetch(`${URL_CITAS}/${id}`, {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(cita)
     });
@@ -253,7 +268,8 @@ const actualizarEstadoCita = async (id, estado) => {
     const response = await fetch(`${URL_CITAS}/${id}/estado`, {
         method: "PATCH",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
             estado: estado
@@ -421,3 +437,8 @@ btn_guardar.addEventListener('click', async () => {
         btn_guardar.disabled = false;
     }
 });
+
+
+if (!token){
+    window.location.href = "../Templates/login.html"
+}

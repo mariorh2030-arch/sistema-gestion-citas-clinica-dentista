@@ -7,12 +7,17 @@ const inputDescripcion = document.getElementById("descripcion");
 const inputPrecio = document.getElementById("precio");
 const inputDuracion = document.getElementById("duracion");
 const tabla = document.getElementById("tablaTratamientos");
+const token = localStorage.getItem("token");
 let tratamientoEditando = null;
 
 const URL_API = "http://localhost:3000/api/tratamientos";
 
 export const obtenerTratamientos = async () => {
-    const response = await fetch(URL_API);
+    const response = await fetch(URL_API, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.mensaje || "No se pudo obtener los tratamientos");
     return data;
@@ -28,7 +33,11 @@ export const crearTratamiento = async () => {
     };
     const response = await fetch(URL_API, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}` 
+        },
+        Authorization: `Bearer ${token}`,
         body: JSON.stringify(tratamiento)
     });
     const data = await response.json();
@@ -61,7 +70,10 @@ const actualizarTratamiento = async (id) => {
     };
     const response = await fetch(`${URL_API}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+         },
         body: JSON.stringify(tratamiento)
     });
     const data = await response.json();
@@ -71,7 +83,10 @@ const actualizarTratamiento = async (id) => {
 };
 const eliminarTratamiento = async (id) => {
     const response = await fetch(`${URL_API}/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.mensaje || "No se pudo eliminar el tratamiento");
@@ -169,4 +184,8 @@ if (modalOverlay) {
             cerrarModal();
         }
     });
+}
+
+if (!token){
+    window.location.href = "../Templates/login.html"
 }

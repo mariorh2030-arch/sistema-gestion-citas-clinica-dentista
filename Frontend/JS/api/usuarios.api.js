@@ -8,12 +8,17 @@ const inputRol = document.getElementById("rol");
 const tabla = document.getElementById("tablaUsuarios");
 const modalTitulo = document.getElementById("modalTitulo");
 const inputBuscar = document.getElementById("buscarUsuario");
+const token = localStorage.getItem("token");
 let usuarioEditando = null;
 
 const URL_API = "http://localhost:3000/api/usuarios";
 
 const obtenerUsuarios = async () => {
-    const response = await fetch(URL_API);
+    const response = await fetch(URL_API, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
 
     if (!response.ok) {
         throw new Error("Error al obtener los usuarios");
@@ -32,8 +37,10 @@ const crearUsuario = async () => {
     const response = await fetch(URL_API, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
+        Authorization: `Bearer ${token}`,
         body: JSON.stringify(usuario)
     });
 
@@ -48,7 +55,10 @@ const crearUsuario = async () => {
 
 const eliminarUsuario = async (id) => {
     const response = await fetch(`${URL_API}/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
     });
 
     const data = await response.json();
@@ -93,8 +103,10 @@ const actualizarUsuario = async (id) => {
     const response = await fetch(`${URL_API}/${id}`, {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
+        
         body: JSON.stringify(usuario)
     });
 
@@ -246,3 +258,7 @@ if (inputBuscar) {
 }
 
 cargarUsuarios().catch((error) => console.error(error));
+
+if (!token){
+    window.location.href = "../Templates/login.html"
+}

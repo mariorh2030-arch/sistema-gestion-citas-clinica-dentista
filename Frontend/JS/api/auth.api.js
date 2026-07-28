@@ -22,11 +22,10 @@ const autentificar = async () => {
         });
 
         const data = await response.json();
-
         if (!response.ok) {
             throw new Error(data.mensaje);
         }
-
+        localStorage.setItem("token", data.token);
         window.location.href = "../Templates/citas.html";
     } catch (error) {
         alert(error.message);
