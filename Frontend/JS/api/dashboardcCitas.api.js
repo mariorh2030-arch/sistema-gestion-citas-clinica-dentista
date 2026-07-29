@@ -256,7 +256,14 @@ const actualizarCita = async (id) => {
         hora: inputHora.value,
         tratamientoId: selectTratamiento.value
     };
+    
 
+    if(Object.entries(cita)
+        .filter(([campo]) => campo !== "tratamientoId")
+        .some(([, valor]) => !valor)
+    ){
+        throw new Error("Completa todos los campos obligatorios para modificar la cita.");
+    }
     const response = await fetch(`${URL_CITAS}/${id}`, {
         method: "PUT",
         headers: {

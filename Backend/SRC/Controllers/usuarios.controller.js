@@ -6,7 +6,10 @@ import {
     eliminarUsuario,
     editarUsuario
 } from "../Models/usuarios.model.js";
-
+const rolesValidos = [
+    "Administrador",
+    "Recepcionista"
+];
 const getUsuarios = async (req, res) => {
     try {
         const usuarios = await obtenerUsuarios();
@@ -21,16 +24,35 @@ const postUsuarios = async (req, res) => {
     try {
         const { nombreUsuario, password, rol } = req.body;
 
-        if (!nombreUsuario || !password || !rol) {
+        if (
+            !nombreUsuario?.trim() ||
+            !password?.trim() ||
+            !rol?.trim()
+        ) {
             return res.status(400).json({ mensaje: "Completa usuario, contraseña y rol" });
+        }
+
+        if(nombreUsuario.trim().length < 3 ){
+            return res.status(400).json({ 
+                mensaje: "El nombre de usuario debe de tener mas de 3 caracteres" 
+            });
+        }
+
+        if(password.trim().length < 8) {
+            return res.status(400).json({ 
+                mensaje: "La contraseña debe de tener mas de 8 caracteres" 
+            });
         }
 
         const nombreLimpio = nombreUsuario.trim();
         const rolLimpio = rol.trim();
 
-        if (nombreLimpio.length < 3) {
-            return res.status(400).json({ mensaje: "El nombre de usuario debe tener al menos 3 caracteres" });
+        if(!rolesValidos.includes(rolLimpio)){
+            return res.status(400).json({ 
+                mensaje: "Rol invalido" 
+            });
         }
+
 
         const passwordHash = await bcrypt.hash(password, 10);
         const resultado = await insertarUsuario(nombreLimpio, passwordHash, rolLimpio);
@@ -54,6 +76,11 @@ const postUsuarios = async (req, res) => {
 const deleteUsuarios = async (req, res) => {
     try {
         const { id } = req.params;
+        if(isNaN(id)){
+            return res.status(400).json({
+                mensaje:"ID inválido"
+            });
+        }
         const response = await eliminarUsuario(id);
 
         if (response.affectedRows === 0) {
@@ -70,6 +97,12 @@ const deleteUsuarios = async (req, res) => {
 const putUsuarios = async (req, res) => {
     try {
         const { id } = req.params;
+        
+        if(isNaN(id)){
+            return res.status(400).json({
+                mensaje:"ID inválido"
+            });
+        }
         const { nombreUsuario, password, rol } = req.body;
 
         const usuarioActual = await obtenerUsuarioPorId(id);
@@ -77,9 +110,25 @@ const putUsuarios = async (req, res) => {
         if (!usuarioActual) {
             return res.status(404).json({ mensaje: "Usuario no encontrado" });
         }
+        if(nombreUsuario && nombreUsuario.trim().length < 3 ){
+            return res.status(400).json({ 
+                mensaje: "El nombre de usuario debe de tener mas de 3 caracteres" 
+            });
+        }
 
-        const nombreLimpio = (nombreUsuario || usuarioActual.nombreUsuario).trim();
-        const rolLimpio = (rol || usuarioActual.rol).trim();
+        if(password && password.trim().length < 8) {
+            return res.status(400).json({ 
+                mensaje: "La contraseña debe de tener mas de 8 caracteres" 
+            });
+        }
+        const nombreLimpio = nombreUsuario?.trim() || usuarioActual.nombreUsuario;
+        const rolLimpio = rol?.trim() || usuarioActual.rol;
+
+        if(!rolesValidos.includes(rolLimpio)){
+            return res.status(400).json({ 
+                mensaje: "Rol invalido" 
+            });
+        }
         let passwordHash = usuarioActual.password;
 
         if (password && password.trim() !== "") {

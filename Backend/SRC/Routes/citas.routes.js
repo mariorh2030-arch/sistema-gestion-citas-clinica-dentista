@@ -11,7 +11,7 @@ import { verificarToken } from "../Middleware/auth.middleware.js";
 const router = express.Router();
 export default router;
 
-router.post("/",verificarToken, agendarCita);
+router.post("/", agendarCita);
 router.get("/",verificarToken, getCitas);
 router.get("/:id",verificarToken, getCitasById);
 router.delete("/:id",verificarToken, deleteCita);

@@ -37,6 +37,11 @@ export const postTratamientos = async (req, res) => {
                 mensaje: "Alguno de los campos esta vacio"
             });
         }
+        if(precio<0 || duracion<0){
+            return res.status(400).json({
+                mensaje: "No se permiten candidades negativas"
+            });
+        }
         const resultado = await insertarTratamientos(
             nombre,
             descripcion,
@@ -65,6 +70,12 @@ export const deleteTratamientos = async (req, res) => {
     try{
         const id = req.params.id;
 
+        if(isNaN(id)){
+            return res.status(400).json({
+                mensaje:"ID inválido"
+            });
+        }
+
         const response = await eliminarTratamientos(id);
 
         if (response.affectedRows === 0) {
@@ -84,6 +95,13 @@ export const deleteTratamientos = async (req, res) => {
  export const putTratamientos = async (req, res) => {
     try{
         const { id } = req.params;
+
+        if(isNaN(id)){
+            return res.status(400).json({
+                mensaje:"ID inválido"
+            });
+        }
+
         const  {
             nombre,
             descripcion,
@@ -91,14 +109,9 @@ export const deleteTratamientos = async (req, res) => {
             duracion
         } = req.body
 
-        if(
-            !nombre ||
-            !descripcion ||
-            !precio ||
-            !duracion
-        ){
+        if(precio<0 || duracion<0){
             return res.status(400).json({
-                mensaje: "Alguno de los campos esta vacio"
+                mensaje: "No se permiten candidades negativas"
             });
         }
 

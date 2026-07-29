@@ -33,14 +33,28 @@ const crearUsuario = async () => {
         password: inputPassword.value,
         rol: inputRol.value
     };
+    if (Object.entries(usuario)
+        .some(([, valor]) => !valor)) {
+        throw new Error("Completa todos los campos obligatorios para crear un nuevo usuario");
+    }
 
+    if(usuario.nombreUsuario.length < 3){
+        throw new Error(
+            "El usuario debe tener al menos 3 caracteres."
+        );
+    }
+
+    if(usuario.password.length < 8){
+        throw new Error(
+            "La contraseña debe tener al menos 8 caracteres."
+        );
+    }
     const response = await fetch(URL_API, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
         },
-        Authorization: `Bearer ${token}`,
         body: JSON.stringify(usuario)
     });
 
@@ -54,6 +68,10 @@ const crearUsuario = async () => {
 };
 
 const eliminarUsuario = async (id) => {
+
+    if (!id || isNaN(id)) {
+        throw new Error("ID de usuario inválido.");
+    }
     const response = await fetch(`${URL_API}/${id}`, {
         method: "DELETE",
         headers: {
@@ -94,11 +112,29 @@ const actualizarTextoModal = () => {
 };
 
 const actualizarUsuario = async (id) => {
+
+    if (!id || isNaN(id)) {
+        throw new Error("ID de usuario inválido.");
+    }
+
+
     const usuario = {
         nombreUsuario: inputNombreUsuario.value.trim(),
         password: inputPassword.value,
         rol: inputRol.value
     };
+    
+    if(usuario.nombreUsuario.length < 3){
+        throw new Error(
+            "El usuario debe tener al menos 3 caracteres."
+        );
+    }
+
+    if(usuario.password.length < 8){
+        throw new Error(
+            "La contraseña debe tener al menos 8 caracteres."
+        );
+    }
 
     const response = await fetch(`${URL_API}/${id}`, {
         method: "PUT",

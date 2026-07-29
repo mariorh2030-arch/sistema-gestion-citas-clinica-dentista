@@ -13,6 +13,10 @@ let pacienteEditando = null;
 
 const URL_API = "http://localhost:3000/api/pacientes";
 
+const validarEmail = (email) => {
+    return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
 export const obtenerPacientes = async () => {
     const response = await fetch(URL_API, {
         headers: {
@@ -36,6 +40,16 @@ export const crearPaciente = async () => {
         telefono: inputTelefono.value,
         correo: inputCorreo.value,
         fechaNacimiento: inputFecha.value
+    }
+
+    if(Object.entries(paciente)
+        .filter(([campo]) => campo !== "correo")
+        .some(([, valor]) => !valor) 
+    ) {
+        throw new Error("Completa todos los campos obligatorios para ingresar al paciente.");
+    }
+    if(!validarEmail(paciente.correo)){
+        throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");
     }
 
     const response = await fetch(URL_API, {
@@ -85,6 +99,18 @@ const actualizarPaciente = async (id) => {
         correo: inputCorreo.value,
         fechaNacimiento: inputFecha.value
     }
+
+    if(Object.entries(paciente)
+        .filter(([campo]) => campo !== "correo")
+        .some(([, valor]) => !valor) 
+    ) {
+        throw new Error("Completa todos los campos obligatorios para ingresar al paciente.");
+    }
+
+    if(!validarEmail(paciente.correo)){
+        throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");
+    }
+
     const response = await fetch(`http://localhost:3000/api/pacientes/${id}`, {
         method: "PUT",
          headers: {

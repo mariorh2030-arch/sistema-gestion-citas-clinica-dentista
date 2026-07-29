@@ -2,6 +2,17 @@ import { obtenerPacientes } from "../Models/paciente.model.js";
 import { insertarPacientes } from "../Models/paciente.model.js";
 import { eliminarPaciente } from "../Models/paciente.model.js";
 import { editarPaciente } from "../Models/paciente.model.js";
+
+const validarEmail = (email) => {
+    return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+const validarTelefono = (telefono) => {
+    const telefonoLimpio = telefono.replace(/\D/g, "");
+    return /^\d{10}$/.test(telefonoLimpio);
+};
+
+
 const getPacientes = async (req, res) => {
     try{
         const pacientes = await obtenerPacientes();
@@ -30,20 +41,26 @@ const postPacientes = async (req, res) => {
             fechaNacimiento
         } = req.body;
 
-        if(
-            !nombre ||
-            !apellidos ||
-            !telefono ||
-            !correo ||
-            !fechaNacimiento 
-        ){
+        if (
+            !nombre?.trim() ||
+            !apellidos?.trim() ||
+            !telefono?.trim() ||
+            !fechaNacimiento?.trim()
+        ) {
             return res.status(400).json({
-                mensaje: "Alguno de los campos esta vacio"
+                mensaje: "No se permiten campos vacíos"
             });
         }
-         if(!/^\d{10}$/.test(telefono)){
+        if(!validarEmail(correo))
+        {
             return res.status(400).json({
-                mensaje: "El teléfono debe contener exactamente 10 números"
+                mensaje: "Correo no valido"
+            });
+        }
+        if(!validarTelefono(telefono))
+        {
+            return res.status(400).json({
+                mensaje: "El teléfono debe tener 10 dígitos."
             });
         }
         const resultado = await insertarPacientes(
@@ -75,6 +92,12 @@ const postPacientes = async (req, res) => {
 const deletePacientes = async (req, res) => {
     try{
         const id = req.params.id;
+        
+        if(isNaN(id)){
+            return res.status(400).json({
+                mensaje:"ID inválido"
+            });
+        }
 
         const response = await eliminarPaciente(id);
 
@@ -96,6 +119,11 @@ const deletePacientes = async (req, res) => {
 const putPacientes = async (req, res) => {
     try{
         const { id } = req.params;
+        if(isNaN(id)){
+            return res.status(400).json({
+                mensaje:"ID inválido"
+            });
+        }
         const  {
             nombre,
             apellidos,
@@ -103,22 +131,14 @@ const putPacientes = async (req, res) => {
             correo,
             fechaNacimiento
         } = req.body
-
-        if(
-            !nombre ||
-            !apellidos ||
-            !telefono ||
-            !correo ||
-            !fechaNacimiento 
-        ){
+        if(!validarEmail(correo)){
             return res.status(400).json({
-                mensaje: "Alguno de los campos esta vacio"
+                mensaje: "Correo no valido"
             });
         }
-
-        if(!/^\d{10}$/.test(telefono)){
+        if(!validarTelefono(telefono)){
             return res.status(400).json({
-                mensaje: "El teléfono debe contener exactamente 10 números"
+                mensaje: "El teléfono debe tener 10 dígitos."
             });
         }
 

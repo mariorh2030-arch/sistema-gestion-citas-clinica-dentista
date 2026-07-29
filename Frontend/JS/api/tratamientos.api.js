@@ -31,6 +31,10 @@ export const crearTratamiento = async () => {
         precio: Number(inputPrecio.value),
         duracion: Number(inputDuracion.value)
     };
+    if (Object.entries(tratamiento)
+        .some(([, valor]) => !valor)) {
+        throw new Error("Completa todos los campos obligatorios de la cita.");
+    }
     const response = await fetch(URL_API, {
         method: "POST",
         headers: { 
@@ -68,6 +72,12 @@ const actualizarTratamiento = async (id) => {
         precio: Number(inputPrecio.value),
         duracion: Number(inputDuracion.value)
     };
+
+    if (Object.entries(tratamiento)
+        .some(([, valor]) => !valor)) {
+        throw new Error("Completa todos los campos obligatorios del tratamiento.");
+    }
+
     const response = await fetch(`${URL_API}/${id}`, {
         method: "PUT",
         headers: { 

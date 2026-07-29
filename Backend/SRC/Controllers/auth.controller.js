@@ -9,6 +9,12 @@ export const autentificarUsuario = async (req, res) => {
         usuario,
         password
     } = req.body;
+
+    if(!usuario?.trim() || !password?.trim()){
+        return res.status(400).json({
+            mensaje: "Usuario y contraseña son obligatorios."
+        });
+    }
     
     const getUsuario   = await obtenerUsuario(usuario);
     if(!getUsuario){
