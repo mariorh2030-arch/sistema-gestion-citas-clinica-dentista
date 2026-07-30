@@ -17,11 +17,19 @@ const selectEstado = document.getElementById("selectFiltroEstado");
 const salir = document.getElementById("salir");
 const token = localStorage.getItem("token");
 
-
 let citaEditado = null;
 const URL_TRATAMIENTOS = "/api/tratamientos";
 const URL_CITAS = "/api/citas";
 
+const validarTelefono = (telefono) => {
+    const telefonoLimpio = telefono.replace(/\D/g, "");
+    return /^\d{10}$/.test(telefonoLimpio);
+};
+
+const convertirHorasAMinutos = (hora) => {
+    const [h, m] = hora.split(":");
+    return Number(h) * 60 + Number(m);
+}
 const cerrarSesion = () => {
     localStorage.removeItem("token");
     window.location.href = "../Templates/login.html";
@@ -50,7 +58,9 @@ const validarEmail = (email) => {
 const cargarTratamientosEnSelect = async () => {
     try {
         const response = await fetch(URL_TRATAMIENTOS, {
-            Authorization: `Bearer ${token}`
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         });
         const tratamientos = await response.json();
 
@@ -212,6 +222,12 @@ const cerrarModal = () => {
 };
 
 const guardarCita = async () => {
+    const horaApertura = convertirHorasAMinutos("9:00");
+    const horaCierre = convertirHorasAMinutos("18:00");
+
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+
     const nuevaCita = {
         nombre: inputNombre.value.trim(),
         apellidos: inputApellidos.value.trim(),
@@ -222,6 +238,8 @@ const guardarCita = async () => {
         fecha: inputFecha.value,
         hora: inputHora.value
     };
+    const horaInicio = convertirHorasAMinutos(nuevaCita.hora);
+    const fechaSeleccionada = new Date(nuevaCita.fecha);
 
     if (Object.entries(nuevaCita)
         .filter(([campo]) => campo !== "correo")
@@ -233,6 +251,24 @@ const guardarCita = async () => {
         throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");
     }
 
+    if (!validarTelefono(nuevaCita.telefono)){
+        throw new Error("Ingrese un numero valido");
+    }
+
+    if(fechaSeleccionada < hoy){
+        throw new Error(
+            "No puedes registrar citas en fechas pasadas."
+        );
+    }
+
+    if(
+        horaInicio < horaApertura ||
+        horaInicio >= horaCierre
+    ){
+        throw new Error(
+            "El horario de citas es de 9 am a 6 pm"
+        );
+    }
     const response = await fetch(URL_CITAS, {
         method: "POST",
         headers: {

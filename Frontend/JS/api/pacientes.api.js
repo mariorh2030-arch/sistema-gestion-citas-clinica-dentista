@@ -100,12 +100,6 @@ const actualizarPaciente = async (id) => {
         fechaNacimiento: inputFecha.value
     }
 
-    if(Object.entries(paciente)
-        .filter(([campo]) => campo !== "correo")
-        .some(([, valor]) => !valor) 
-    ) {
-        throw new Error("Completa todos los campos obligatorios para ingresar al paciente.");
-    }
 
     if(!validarEmail(paciente.correo)){
         throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");

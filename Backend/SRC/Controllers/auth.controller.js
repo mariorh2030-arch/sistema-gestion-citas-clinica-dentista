@@ -18,7 +18,7 @@ export const autentificarUsuario = async (req, res) => {
     
     const getUsuario   = await obtenerUsuario(usuario);
     if(!getUsuario){
-        return res.status(404).json({
+        return res.status(401).json({
             mensaje:  "Error usuario o contraseña incorrectos"
         });
     }

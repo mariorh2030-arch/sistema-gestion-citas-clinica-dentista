@@ -51,8 +51,9 @@ export const getCitasById = async (req, res) => {
 }
 
 export const agendarCita = async (req, res) => {
-
     try{
+        const hoy = new Date();
+        hoy.setHours(0,0,0,0);
         const { 
             nombre,
             apellidos,
@@ -88,6 +89,38 @@ export const agendarCita = async (req, res) => {
                 mensaje: "El teléfono debe tener 10 dígitos."
             });
         }
+        const duracionNueva = await obtenerTratamientoPorId(tratamientoId)
+
+        if (
+            duracionNueva.length === 0
+        ) {
+            return res.status(404).json({
+                mensaje: "Tratamiento no encontrado."
+            });
+        }
+        const horaNuevaInicio = convertirHorasAMinutos(hora);
+        const horaNuevaFin = horaNuevaInicio + duracionNueva[0].duracion;
+        const horaApertura = convertirHorasAMinutos("9:00");
+        const horaCierre = convertirHorasAMinutos("18:00");
+
+        const fechaCita = new Date(fecha);
+
+        if (fechaCita < hoy) {
+            return res.status(400).json({
+                mensaje:"No puedes registrar citas en fechas pasadas."
+            });
+        }
+        
+        if (
+            horaNuevaInicio < horaApertura || 
+            horaNuevaFin > horaCierre
+        ){
+            return res.status(400).json({
+            mensaje:
+            "La cita está fuera del horario de atención."
+        });
+        }
+
         const paciente = await obtenerPacientePorTelefono(telefono);
         let pacienteId;
         
@@ -121,15 +154,10 @@ export const agendarCita = async (req, res) => {
                 mensaje: "cita registrada correctamente"
             });
         }
-
-        const duracionNueva = await obtenerTratamientoPorId(tratamientoId)
-        const horaNuevaInicio = convertirHorasAMinutos(hora);
-        const horaNuevaFin = horaNuevaInicio + duracionNueva[0].duracion;
-
-        
         for (const cita of citasExistentes){
             const horaExistenteInicio = convertirHorasAMinutos(cita.hora);
             const horaExistenteFin = horaExistenteInicio + cita.duracion;
+
             
             if (
                 horaNuevaInicio < horaExistenteFin && 
