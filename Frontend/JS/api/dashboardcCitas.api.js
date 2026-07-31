@@ -1,4 +1,6 @@
 
+import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.esm.all.js";
+
 const tbody = document.getElementById("tablaCitas");
 const btn_guardar = document.getElementById("btn_guardar");
 const inputNombre = document.getElementById("nombre");
@@ -32,11 +34,14 @@ const convertirHorasAMinutos = (hora) => {
 }
 const cerrarSesion = () => {
     localStorage.removeItem("token");
+    localStorage.clear();
     window.location.href = "../Templates/login.html";
 }
 function toggleDropdown() {
   document.getElementById("myDropdown").classList.toggle("show");
 }
+
+window.toggleDropdown = toggleDropdown;
 
 const parseResponse = async (response) => {
     const text = await response.text();
@@ -65,7 +70,12 @@ const cargarTratamientosEnSelect = async () => {
         const tratamientos = await response.json();
 
         if (!response.ok) {
-            throw new Error(tratamientos.mensaje || "No se pudieron cargar los tratamientos");
+            Swal.fire({
+                icon: "warning",
+                title: "Atención",
+                text: "No se Pudieron cargar los tratamientos"
+            });
+            
         }
 
         selectTratamiento.innerHTML = '<option value="" selected disabled>Selecciona un tratamiento</option>';
@@ -166,8 +176,20 @@ const eliminarCita = async (id) => {
     });
 
     const data = await parseResponse(response);
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Cita eliminada correctamente",
+            confirmButtonText: "Aceptar"
+        });
+    }
     if (!response.ok) {
-        throw new Error(data?.mensaje || "No se pudo eliminar la cita.");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo eliminar la cita"
+        });
     }
 
     return data;
@@ -244,30 +266,46 @@ const guardarCita = async () => {
     if (Object.entries(nuevaCita)
         .filter(([campo]) => campo !== "correo")
         .some(([, valor]) => !valor)) {
-        throw new Error("Completa todos los campos obligatorios de la cita.");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Todos los campos son requeridos"
+        });
     }
 
     if (!validarEmail(nuevaCita.correo)) {
-        throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Ingrese un correo electronico valido"
+        });
     }
 
     if (!validarTelefono(nuevaCita.telefono)){
-        throw new Error("Ingrese un numero valido");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Ingrese un numero telefonico valido"
+        });
     }
 
     if(fechaSeleccionada < hoy){
-        throw new Error(
-            "No puedes registrar citas en fechas pasadas."
-        );
+        Swal.fire({
+            icon: "warning",
+            title: "Atencion",
+            text: "No puedes registrar citas en fechas pasadas"
+        });
     }
 
     if(
         horaInicio < horaApertura ||
         horaInicio >= horaCierre
     ){
-        throw new Error(
-            "El horario de citas es de 9 am a 6 pm"
-        );
+        Swal.fire({
+            icon: "warning",
+            title: "Atencion",
+            text: "El horario de citas es de 9 am a 6 pm"
+        });
     }
     const response = await fetch(URL_CITAS, {
         method: "POST",
@@ -279,8 +317,21 @@ const guardarCita = async () => {
     });
 
     const data = await parseResponse(response);
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "creada creada correctamente",
+            confirmButtonText: "Aceptar"
+        });
+    }
+
     if (!response.ok) {
-        throw new Error(data?.mensaje || "No se pudo registrar la cita.");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo agentar la cita"
+        });
     }
 
     return data;
@@ -298,7 +349,11 @@ const actualizarCita = async (id) => {
         .filter(([campo]) => campo !== "tratamientoId")
         .some(([, valor]) => !valor)
     ){
-        throw new Error("Completa todos los campos obligatorios para modificar la cita.");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Completa todos los campos para editar la cita"
+        });
     }
     const response = await fetch(`${URL_CITAS}/${id}`, {
         method: "PUT",
@@ -310,8 +365,20 @@ const actualizarCita = async (id) => {
     });
 
     const data = await parseResponse(response);
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Usuario actualizado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+    }
     if (!response.ok) {
-        throw new Error(data?.mensaje || "No se pudo actualizar la cita.");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo actualizar la cita"
+        });
     }
 
     citaEditado = null;
@@ -331,7 +398,11 @@ const actualizarEstadoCita = async (id, estado) => {
 
     const data = await parseResponse(response);
     if (!response.ok) {
-        throw new Error(data?.mensaje || "No se pudo actualizar el estado.");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo actualizar el estado de la cita"
+        });
     }
 };
 
@@ -387,8 +458,11 @@ const mostrarCitas = (citas) => {
                     await cargarCitas();
                 } catch (error) {
                     selectEstado.value = cita.estado;
-                    console.error("Error al actualizar el estado:", error);
-                    alert(error.message);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "No se pudo actualizar el estado de la cita"
+                    });
                 }
             });
             const btn_editar = document.createElement("button");
@@ -404,16 +478,30 @@ const mostrarCitas = (citas) => {
             btn_eliminar.classList.add("btn_eliminar");
             btn_editar.classList.add("btn_editar");
 
-            const tdAcciones = document.createElement("td")
-
-
+            const tdAcciones = document.createElement("td");
             const id = cita.id;
-            btn_eliminar.addEventListener('click',async  () => {
-                try{
-                    await eliminarCita(id);
-                    await cargarCitas();
+
+            btn_eliminar.addEventListener("click", async () => {
+                try {
+                    const resultado = await Swal.fire({
+                        title: "¿Eliminar cita?",
+                        text: "Esta acción no se puede deshacer.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Sí, eliminar",
+                        cancelButtonText: "Cancelar"
+                    });
+
+                    if (resultado.isConfirmed) {
+                        await eliminarCita(id);
+                        await cargarCitas();
+                    }
                 } catch (error) {
-                    alert(error.message);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "No se pudo eliminar la cita"
+                    });
                 }
             });
             btn_editar.addEventListener('click', async () => {
@@ -422,7 +510,11 @@ const mostrarCitas = (citas) => {
                     const citaCompleta = Array.isArray(resultado) ? resultado[0] : resultado;
 
                     if (!citaCompleta) {
-                        throw new Error("No se encontró la cita seleccionada.");
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "No se encontro la cita seleccionada"
+                        });
                     }
 
                     citaEditado = id;
@@ -430,8 +522,11 @@ const mostrarCitas = (citas) => {
                     cambiarEdicionDatosPaciente(true);
                     form.style.display = "flex";
                 } catch (error) {
-                    console.error("Error al cargar la cita:", error);
-                    alert(error.message);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "No se pudo Editar la cita"
+                    });
                 }
             });
 
@@ -459,7 +554,11 @@ const cargarCitas = async () => {
         const citas = await buscarCita();
         mostrarCitas(citas);
     } catch (error) {
-        alert(error.message);
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo cargar las citas"
+        });
     }
 };
 

@@ -1,3 +1,4 @@
+import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.esm.all.js";
 const btn_agendar = document.getElementById("btn_agendar");
 const inputNombre = document.getElementById("nombre");
 const inputApellidos = document.getElementById("apellidos");
@@ -86,16 +87,30 @@ const insertarCita = async () => {
     if (Object.entries(nuevaCita)
         .filter(([campo]) => campo !== "correo")
         .some(([, valor]) => !valor)) {
-        throw new Error("Completa todos los campos obligatorios de la cita.");
+          Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Completa todos los campos."
+        });
     }
 
     if (!validarEmail(nuevaCita.correo)) {
-        throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Ingrese un correo electronico valido"
+        });
+        
     }
 
     if(!validarTelefono(nuevaCita.telefono))
     {
-        throw new Error("El telefono no debe de contener letras y 10 digitos");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Numero de telefono invalido"
+        });
+        
     }
 
     const response = await fetch(URL_CITAS, {
@@ -108,13 +123,24 @@ const insertarCita = async () => {
     });
 
 
-    if (!response.ok) {
-        throw new Error("No se pudo registrar la cita");
-    }
+      if(response.ok){
+          Swal.fire({
+              icon: "success",
+              title: "¡Correcto!",
+              text: "Cita creada correctamente",
+              confirmButtonText: "Aceptar"
+          });
+      }
+  
+      if (!response.ok) {
+          Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "No se pudo agentar la cita"
+          });
+      }
 
     const data = await response.json();
-    console.log(data);
-    console.log(nuevaCita);
 }
 
 btn_agendar.addEventListener('click', async () => {
