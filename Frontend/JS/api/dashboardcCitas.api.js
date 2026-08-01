@@ -295,6 +295,7 @@ const guardarCita = async () => {
             title: "Atencion",
             text: "No puedes registrar citas en fechas pasadas"
         });
+        return;
     }
 
     if(
@@ -306,6 +307,7 @@ const guardarCita = async () => {
             title: "Atencion",
             text: "El horario de citas es de 9 am a 6 pm"
         });
+        return;
     }
     const response = await fetch(URL_CITAS, {
         method: "POST",
@@ -321,9 +323,10 @@ const guardarCita = async () => {
         Swal.fire({
             icon: "success",
             title: "¡Correcto!",
-            text: "creada creada correctamente",
+            text: "Cita creada correctamente",
             confirmButtonText: "Aceptar"
         });
+        return data;
     }
 
     if (!response.ok) {
@@ -332,6 +335,7 @@ const guardarCita = async () => {
             title: "Oops...",
             text: "No se pudo agentar la cita"
         });
+        return data;
     }
 
     return data;
@@ -354,6 +358,7 @@ const actualizarCita = async (id) => {
             title: "Oops...",
             text: "Completa todos los campos para editar la cita"
         });
+        return;
     }
     const response = await fetch(`${URL_CITAS}/${id}`, {
         method: "PUT",
@@ -369,9 +374,10 @@ const actualizarCita = async (id) => {
         Swal.fire({
             icon: "success",
             title: "¡Correcto!",
-            text: "Usuario actualizado correctamente",
+            text: "Cita modificada correctamente",
             confirmButtonText: "Aceptar"
         });
+        return data;
     }
     if (!response.ok) {
         Swal.fire({
@@ -379,6 +385,7 @@ const actualizarCita = async (id) => {
             title: "Oops...",
             text: "No se pudo actualizar la cita"
         });
+        return data;
     }
 
     citaEditado = null;
@@ -403,6 +410,7 @@ const actualizarEstadoCita = async (id, estado) => {
             title: "Oops...",
             text: "No se pudo actualizar el estado de la cita"
         });
+        return data;
     }
 };
 

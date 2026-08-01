@@ -8,19 +8,19 @@ const inputFecha = document.getElementById("fecha");
 const inputHora = document.getElementById("hora")
 const inputTelefono = document.getElementById("numero");
 const selectTratamiento = document.getElementById("tratamiento");
-const error = document.getElementById("error");
-const token = localStorage.getItem("token");
+const error = document.getElementById("error"); 
 
 const URL_TRATAMIENTOS = "/api/tratamientos";
 const URL_CITAS = "/api/citas";
 
+const convertirHorasAMinutos = (hora) => {
+    const [h, m] = hora.split(":");
+    return Number(h) * 60 + Number(m);
+}
+
 const cargarTratamientosEnSelect = async () => {
     try {
-        const response = await fetch(URL_TRATAMIENTOS, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const response = await fetch(URL_TRATAMIENTOS);
         const tratamientos = await response.json();
 
         if (!response.ok) {
@@ -73,6 +73,13 @@ const validarTelefono = (telefono) => {
     return /^\d{10}$/.test(telefonoLimpio);
 };
 const insertarCita = async () => {
+    const horaApertura = convertirHorasAMinutos("9:00");
+    const horaCierre = convertirHorasAMinutos("18:00"); 
+    const hora = new Date();
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+
+
     const nuevaCita = {
         nombre: inputNombre.value,
         apellidos: inputApellidos.value,
@@ -83,6 +90,26 @@ const insertarCita = async () => {
         fecha: inputFecha.value,
         hora: inputHora.value
     }
+    const [
+        anioNacimiento, 
+        mesNacomiento, 
+        diaNacimiento
+    ] = nuevaCita.fechaNacimiento.split("-");
+    const [anio, mes, dia] = nuevaCita.fecha.split("-");
+    const horaInicio = convertirHorasAMinutos(nuevaCita.hora);
+    const horaActual = hora.getHours() * 60 + hora.getMinutes();
+    const fecha_nacimiento = new Date(Number(anioNacimiento));
+    const anioActual = new Date().getFullYear();
+    const fechaSeleccionada = new Date(
+        Number(anio),
+        Number(mes) -1,
+        Number(dia)
+    );
+
+    fechaSeleccionada.setHours(0, 0, 0, 0);
+
+
+
 
     if (Object.entries(nuevaCita)
         .filter(([campo]) => campo !== "correo")
@@ -92,6 +119,7 @@ const insertarCita = async () => {
             title: "Atención",
             text: "Completa todos los campos."
         });
+        return;
     }
 
     if (!validarEmail(nuevaCita.correo)) {
@@ -100,7 +128,7 @@ const insertarCita = async () => {
             title: "Atención",
             text: "Ingrese un correo electronico valido"
         });
-        
+        return;
     }
 
     if(!validarTelefono(nuevaCita.telefono))
@@ -110,19 +138,58 @@ const insertarCita = async () => {
             title: "Atención",
             text: "Numero de telefono invalido"
         });
-        
+        return;
+    }
+
+    if(
+        horaInicio < horaApertura ||
+        horaInicio >= horaCierre
+    ){
+        Swal.fire({
+            icon: "warning",
+            title: "Atencion",
+            text: "El horario de citas es de 9 am a 6 pm"
+        });
+        return;
+    }
+    if (
+        fechaSeleccionada.getTime() === hoy.getTime() && 
+        horaInicio < horaActual
+    ) {
+        Swal.fire({
+            icon: "warning",
+            title: "Horario Invalido",
+            text: "No puedes agendar una cita en una hora que ya pasó."
+        });
+        return;
+    }
+
+    if(fechaSeleccionada < hoy){
+        Swal.fire({
+            icon: "warning",
+            title: "Atencion",
+            text: "No puedes registrar citas en fechas pasadas"
+        });
+        return;
+    }
+    if(fecha_nacimiento > anioActual){
+        Swal.fire({
+            icon: "warning",
+            title: "Atencion",
+            text: "El año de nacimiento debe de ser menor al año actual"
+        });
+        return;
     }
 
     const response = await fetch(URL_CITAS, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(nuevaCita)
     });
 
-
+    const data = await response.json();
       if(response.ok){
           Swal.fire({
               icon: "success",
@@ -130,21 +197,23 @@ const insertarCita = async () => {
               text: "Cita creada correctamente",
               confirmButtonText: "Aceptar"
           });
+          limpiarInputs();
+          return data;
       }
   
       if (!response.ok) {
           Swal.fire({
               icon: "error",
               title: "Oops...",
-              text: "No se pudo agentar la cita"
+              text: data?.mensaje || "No se pudo agendar la cita."
           });
+          return data;
       }
 
-    const data = await response.json();
+    
 }
 
 btn_agendar.addEventListener('click', async () => {
     await insertarCita();
-    limpiarInputs();
 });
 

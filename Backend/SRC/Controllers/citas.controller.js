@@ -8,7 +8,10 @@ import {
     actualizarEstado,
     obtenerCitasDelDia
  } from "../Models/citas.model.js";
-import { eliminarPaciente, insertarPacientes } from "../Models/paciente.model.js";
+import {
+    eliminarPaciente, 
+    insertarPacientes 
+} from "../Models/paciente.model.js";
 import { 
     obtenerTratamientos, 
     obtenerTratamientoPorId
@@ -98,12 +101,19 @@ export const agendarCita = async (req, res) => {
                 mensaje: "Tratamiento no encontrado."
             });
         }
+        const horas = new Date();
         const horaNuevaInicio = convertirHorasAMinutos(hora);
         const horaNuevaFin = horaNuevaInicio + duracionNueva[0].duracion;
         const horaApertura = convertirHorasAMinutos("9:00");
         const horaCierre = convertirHorasAMinutos("18:00");
+        const horaActual = horas.getHours() * 60 + horas.getMinutes();
+        const [anio, mes, dia] = fecha.split("-");
 
-        const fechaCita = new Date(fecha);
+        const fechaCita = new Date(
+            Number(anio),
+            Number(mes) -1,
+            Number(dia)
+        );
 
         if (fechaCita < hoy) {
             return res.status(400).json({
@@ -119,6 +129,14 @@ export const agendarCita = async (req, res) => {
             mensaje:
             "La cita está fuera del horario de atención."
         });
+        }
+        if (
+            fechaCita.getTime() === hoy.getTime() && 
+            horaNuevaInicio < horaActual
+        ) {
+            return res.status(400).json({
+                mensaje: "No puedes agendar una cita en una hora que ya pasó."
+            });
         }
 
         const paciente = await obtenerPacientePorTelefono(telefono);
@@ -182,7 +200,7 @@ export const agendarCita = async (req, res) => {
         } catch(error) {
             console.error(error);
             res.status(500).json({
-                mensaje:"No se pudo editar al paciente"
+                mensaje:"No se pudo registrar al paciente"
             });
         }
     } 
