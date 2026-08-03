@@ -1,3 +1,4 @@
+import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.esm.all.js";
 const btnGuardar = document.getElementById("btn_guardar");
 const btnAbrirModal = document.getElementById("btn_abrir_modal");
 const btnCerrarModal = document.getElementById("btn_cerrar_modal");
@@ -19,7 +20,14 @@ export const obtenerTratamientos = async () => {
         }
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.mensaje || "No se pudo obtener los tratamientos");
+    if (!response.ok) {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data.mensaje || "No se pudo obtener los tratamientos"
+        });
+        return data;
+    }
     return data;
 };
 
@@ -33,7 +41,21 @@ export const crearTratamiento = async () => {
     };
     if (Object.entries(tratamiento)
         .some(([, valor]) => !valor)) {
-        throw new Error("Completa todos los campos obligatorios de la cita.");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Todos los campos son requeridos"
+        });
+        return;
+    }
+
+    if (tratamiento.precio < 0 || tratamiento.duracion < 0){
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "No se pueden ingresar cantidades negativas"
+        });
+        return;
     }
     const response = await fetch(URL_API, {
         method: "POST",
@@ -44,8 +66,26 @@ export const crearTratamiento = async () => {
         Authorization: `Bearer ${token}`,
         body: JSON.stringify(tratamiento)
     });
+
     const data = await response.json();
-    if (!response.ok) throw new Error(data.mensaje || "No se pudo crear el tratamiento");
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Tratamiento creado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
+    }
+
+    if (!response.ok) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo crear un nuevo tratamiento"
+        });
+        return data;
+    }
     return data;
 };
 
@@ -73,10 +113,15 @@ const actualizarTratamiento = async (id) => {
         duracion: Number(inputDuracion.value)
     };
 
-    if (Object.entries(tratamiento)
-        .some(([, valor]) => !valor)) {
-        throw new Error("Completa todos los campos obligatorios del tratamiento.");
+    if (tratamiento.precio < 0 || tratamiento.duracion < 0){
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "No se pueden ingresar cantidades negativas"
+        });
+        return;
     }
+
 
     const response = await fetch(`${URL_API}/${id}`, {
         method: "PUT",
@@ -86,9 +131,25 @@ const actualizarTratamiento = async (id) => {
          },
         body: JSON.stringify(tratamiento)
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.mensaje || "No se pudo editar el tratamiento");
-    tratamientoEditando = null;
+        const data = await response.json();
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Tratamiento editado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
+    }
+
+    if (!response.ok) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo editar un nuevo tratamiento"
+        });
+        return data;
+    }
     return data;
 };
 const eliminarTratamiento = async (id) => {
@@ -99,7 +160,24 @@ const eliminarTratamiento = async (id) => {
         }
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.mensaje || "No se pudo eliminar el tratamiento");
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Tratamiento eliminado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
+    }
+
+    if (!response.ok) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo eliminar el tratamiento"
+        });
+        return data;
+    }
     return data;
 };
 
@@ -142,9 +220,26 @@ const mostrarTratamientos = (tratamientos) => {
         `;
         btnEliminar.addEventListener("click", async () => {
             try {
-                await eliminarTratamiento(tratamiento.id);
-                await cargarTratamientos();
-            } catch (error) { alert(error.message); }
+                const resultado = await Swal.fire({
+                    title: "¿Eliminar paciente?",
+                    text: "Esta acción no se puede deshacer.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, eliminar",
+                    cancelButtonText: "Cancelar"
+                });
+
+                if(resultado.isConfirmed){
+                    await eliminarTratamiento(tratamiento.id);
+                    await cargarTratamientos();
+                }
+            } catch (error) { 
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "No se pudo eliminar el tratamiento"
+                });
+             }
         });
         btnEditar.addEventListener("click", () => {
             tratamientoEditando = tratamiento.id;

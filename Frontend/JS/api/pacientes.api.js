@@ -37,7 +37,6 @@ export const obtenerPacientes = async () => {
             text: data?.mensaje || "Error al obtener los pacientes"
         });
         return data;
-        throw new Error("Error al obtener los pacientes");
     }
     return data;
 }
@@ -72,7 +71,7 @@ export const crearPaciente = async () => {
         return;
     }
 
-    if (!validarTelefono(nuevaCita.telefono)){
+    if (!validarTelefono(paciente.telefono)){
         Swal.fire({
             icon: "warning",
             title: "Atención",
@@ -130,6 +129,7 @@ const eliminarPacientes = async (id) => {
         });
         return data;
     }
+
     if (!response.ok) {
         Swal.fire({
             icon: "error",
@@ -138,9 +138,7 @@ const eliminarPacientes = async (id) => {
         });
         return data;
     }
-
     return data;
-
 }
 const mostrarPacientesForm = (paciente) => {
         inputNombre.value = paciente.nombre;
@@ -256,17 +254,25 @@ const mostrarPacientes = (pacientes) => {
         `;
 
         btn_eliminar.addEventListener('click', async () => {
-            const resultado = await Swal.fire({
-                title: "¿Eliminar paciente?",
-                text: "Esta acción no se puede deshacer.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Sí, eliminar",
-                cancelButtonText: "Cancelar"
-            });
-            if(resultado.isConfirmed){
-                await eliminarPacientes(id); 
-                await cargarPacientes() 
+            try {
+                const resultado = await Swal.fire({
+                    title: "¿Eliminar paciente?",
+                    text: "Esta acción no se puede deshacer.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, eliminar",
+                    cancelButtonText: "Cancelar"
+                });
+                if(resultado.isConfirmed){
+                    await eliminarPacientes(id); 
+                    await cargarPacientes() 
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "No se pudo eliminar al paciente"
+                });
             }
         });
 
