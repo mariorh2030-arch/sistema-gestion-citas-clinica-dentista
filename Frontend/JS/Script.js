@@ -25,6 +25,12 @@ const cargarTratamientosEnSelect = async () => {
 
         if (!response.ok) {
             throw new Error(tratamientos.mensaje || "No se pudieron cargar los tratamientos");
+            Swal.fire({
+                icon: "warning",
+                title: "Atención",
+                text: tratamientos.mensaje || "No se pudieron cargar los tratamientos"
+            });
+            return;
         }
 
         selectTratamiento.innerHTML = "";

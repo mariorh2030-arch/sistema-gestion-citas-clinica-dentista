@@ -103,7 +103,12 @@ const obtenerCitas = async () => {
 
     if (!response.ok) {
         const data = await parseResponse(response);
-        throw new Error(data?.mensaje || "Error al obtener las citas");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data?.mensaje || "Error al obtener las citas"
+        });
+        return data;
     }
 
     const data = await parseResponse(response);
@@ -119,7 +124,13 @@ const obtenerCitasPorId = async (id) => {
 
     if (!response.ok) {
         const data = await parseResponse(response);
-        throw new Error(data?.mensaje || "Error al obtener la cita");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data?.mensaje || "Error al obtener la cita"
+        });
+        return data;
+        
     }
 
     const data = await parseResponse(response);
@@ -183,6 +194,7 @@ const eliminarCita = async (id) => {
             text: "Cita eliminada correctamente",
             confirmButtonText: "Aceptar"
         });
+        return data;
     }
     if (!response.ok) {
         Swal.fire({
@@ -190,6 +202,7 @@ const eliminarCita = async (id) => {
             title: "Oops...",
             text: "No se pudo eliminar la cita"
         });
+        return data;
     }
 
     return data;
@@ -271,6 +284,7 @@ const guardarCita = async () => {
             title: "Atención",
             text: "Todos los campos son requeridos"
         });
+        return;
     }
 
     if (!validarEmail(nuevaCita.correo)) {
@@ -279,6 +293,7 @@ const guardarCita = async () => {
             title: "Atención",
             text: "Ingrese un correo electronico valido"
         });
+        return;
     }
 
     if (!validarTelefono(nuevaCita.telefono)){
@@ -287,6 +302,7 @@ const guardarCita = async () => {
             title: "Atención",
             text: "Ingrese un numero telefonico valido"
         });
+        return;
     }
 
     if(fechaSeleccionada < hoy){

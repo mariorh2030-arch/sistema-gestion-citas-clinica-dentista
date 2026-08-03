@@ -1,4 +1,4 @@
-
+import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.esm.all.js";
 const inputUsuario = document.getElementById("usuario");
 const inputPassword = document.getElementById("password");
 const btn_acceder = document.getElementById("btn_acceder");
@@ -11,7 +11,13 @@ const autentificar = async () => {
         const password = inputPassword?.value?.trim() ?? "";
 
         if (!usuario || !password) {
-            throw new Error("Campos obligatorios");
+
+            Swal.fire({
+                icon: "warning",
+                title: "Atención",
+                text: "Todos los campos requeridos"
+            });
+            return;
         }
         const user = {
             usuario: usuario,
@@ -27,8 +33,21 @@ const autentificar = async () => {
         });
 
         const data = await response.json();
+        if (response.ok){
+            Swal.fire({
+                icon: "success",
+                title: "¡Correcto!",
+                text: "Login Exitoso",
+                confirmButtonText: "Aceptar"
+            });
+        }
         if (!response.ok) {
-            throw new Error(data.mensaje || "Error al iniciar sesion");
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: data.mensaje || "Error al iniciar sesion"
+            });
+            return;
         }
         localStorage.setItem("token", data.token);
         window.location.href = "../Templates/citas.html";

@@ -1,3 +1,4 @@
+import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.esm.all.js";
 const btn_guardar = document.getElementById("btn_guardar");
 const btnAbrirModal = document.getElementById("btn_abrir_modal");
 const btnCerrarModal = document.getElementById("btn_cerrar_modal");
@@ -16,6 +17,10 @@ const URL_API = "http://localhost:3000/api/pacientes";
 const validarEmail = (email) => {
     return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
+const validarTelefono = (telefono) => {
+    const telefonoLimpio = telefono.replace(/\D/g, "");
+    return /^\d{10}$/.test(telefonoLimpio);
+};
 
 export const obtenerPacientes = async () => {
     const response = await fetch(URL_API, {
@@ -23,13 +28,18 @@ export const obtenerPacientes = async () => {
             Authorization: `Bearer ${token}`
         }
     });
-
+    const data = await response.json()
     if(!response.ok)
     {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data?.mensaje || "Error al obtener los pacientes"
+        });
+        return data;
         throw new Error("Error al obtener los pacientes");
     }
-
-    return await response.json();
+    return data;
 }
 
 export const crearPaciente = async () => {
@@ -46,10 +56,29 @@ export const crearPaciente = async () => {
         .filter(([campo]) => campo !== "correo")
         .some(([, valor]) => !valor) 
     ) {
-        throw new Error("Completa todos los campos obligatorios para ingresar al paciente.");
+         Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Todos los campos son requeridos"
+        });
+        return;
     }
     if(!validarEmail(paciente.correo)){
-        throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Ingrese un correo electronico valido"
+        });
+        return;
+    }
+
+    if (!validarTelefono(nuevaCita.telefono)){
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Ingrese un numero telefonico valido"
+        });
+        return;
     }
 
     const response = await fetch(URL_API, {
@@ -61,8 +90,26 @@ export const crearPaciente = async () => {
         body: JSON.stringify(paciente)
     });
 
-    const data = await response.json();
-    console.log(data);
+    const data = await parseResponse(response);
+        if(response.ok){
+            Swal.fire({
+                icon: "success",
+                title: "¡Correcto!",
+                text: "Paciente creado correctamente",
+                confirmButtonText: "Aceptar"
+            });
+            return data;
+        }
+    
+        if (!response.ok) {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "No se pudo crear un nuevo paciente"
+            });
+            return data;
+        }
+    return data;
 }
 
 const eliminarPacientes = async (id) => {
@@ -73,7 +120,26 @@ const eliminarPacientes = async (id) => {
         }
     });
 
-    return await respuesta.json();
+    const data = await parseResponse(response);
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Paciente eliminado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
+    }
+    if (!response.ok) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "No se pudo eliminar al paciente"
+        });
+        return data;
+    }
+
+    return data;
 
 }
 const mostrarPacientesForm = (paciente) => {
@@ -102,7 +168,21 @@ const actualizarPaciente = async (id) => {
 
 
     if(!validarEmail(paciente.correo)){
-        throw new Error("Ingresa un correo electrónico válido o déjalo vacío.");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Ingrese un correo electronico valido"
+        });
+        return;
+    }
+
+    if (!validarTelefono(paciente.telefono)){
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "Ingrese un numero telefonico valido"
+        });
+        return;
     }
 
     const response = await fetch(`http://localhost:3000/api/pacientes/${id}`, {
@@ -115,11 +195,25 @@ const actualizarPaciente = async (id) => {
     });
 
     const data = response.json();
-    console.log("error backen: ", data);
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Paciente editado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
+    }
     if(!response.ok){
-        throw new Error(data.mensaje);
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data.mensaje || "No se pudo editar al paciente"
+        });
+        return data;
     }
     pacienteEditando = null;
+    return data;
 }
 const mostrarPacientes = (pacientes) => {
     tabla.innerHTML= "";
@@ -161,9 +255,19 @@ const mostrarPacientes = (pacientes) => {
             <td>${paciente.fechaNacimiento.split("T")[0]}</td>
         `;
 
-        btn_eliminar.addEventListener('click', async () => { 
-            await eliminarPacientes(id); 
-            await cargarPacientes() 
+        btn_eliminar.addEventListener('click', async () => {
+            const resultado = await Swal.fire({
+                title: "¿Eliminar paciente?",
+                text: "Esta acción no se puede deshacer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            });
+            if(resultado.isConfirmed){
+                await eliminarPacientes(id); 
+                await cargarPacientes() 
+            }
         });
 
         btn_editar.addEventListener('click', async () => { 
