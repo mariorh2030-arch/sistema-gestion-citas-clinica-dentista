@@ -1,0 +1,115 @@
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+#sidebar .sidebar-toggle {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1100;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    background: #0f766e;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(15, 118, 110, 0.22);
+}
+
+#sidebar .sidebar {
+    width: 250px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fffd 100%);
+    border-right: 1px solid #d9efeb;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 30px rgba(15, 118, 110, 0.08);
+    transition: transform 0.25s ease, width 0.25s ease;
+    transform: translateX(0);
+}
+
+#sidebar .sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+    transform: translateX(-100%);
+}
+
+body {
+    padding-left: 250px;
+    transition: padding-left 0.25s ease;
+}
+
+body.sidebar-collapsed {
+    padding-left: 0;
+}
+
+#sidebar .sidebar-header {
+    padding: 25px 20px;
+    border-bottom: 1px solid #e6f3f1;
+}
+
+#sidebar .sidebar-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #115e59;
+}
+
+#sidebar .sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 10px;
+    gap: 6px;
+}
+
+#sidebar .sidebar-menu a {
+    text-decoration: none;
+    color: #153b37;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+#sidebar .sidebar-menu a:hover,
+#sidebar .sidebar-menu a.active {
+    background-color: #f0fdfb;
+    color: #0f766e;
+}
+
+#sidebar .sidebar-footer {
+    margin-top: auto;
+    padding: 20px;
+}
+
+#sidebar .sidebar-footer button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #0f766e;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+#sidebar .sidebar-footer button:hover {
+    background: #115e59;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-left: 0;
+    }
+
+    #sidebar .sidebar {
+        width: 220px;
+    }
+
+    #sidebar .sidebar.collapsed {
+        width: 0;
+    }
+}

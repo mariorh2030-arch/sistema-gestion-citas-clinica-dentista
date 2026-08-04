@@ -131,7 +131,7 @@ const actualizarTratamiento = async (id) => {
          },
         body: JSON.stringify(tratamiento)
     });
-        const data = await response.json();
+    const data = await response.json();
     if(response.ok){
         Swal.fire({
             icon: "success",
@@ -272,7 +272,13 @@ btnGuardar.addEventListener("click", async () => {
         await cargarTratamientos();
         limpiarFormulario();
         cerrarModal();
-    } catch (error) { alert(error.message); }
+    } catch (error) { 
+         Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message || "No se pudo guardar el tratamiento"
+        });
+     }
 });
 
 if (btnAbrirModal) {

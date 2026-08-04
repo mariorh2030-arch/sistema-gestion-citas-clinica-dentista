@@ -1,3 +1,4 @@
+import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.esm.all.js";
 const btn_guardar = document.getElementById("btn_guardar");
 const btnAbrirModal = document.getElementById("btn_abrir_modal");
 const btnCerrarModal = document.getElementById("btn_cerrar_modal");
@@ -20,11 +21,17 @@ const obtenerUsuarios = async () => {
         }
     });
 
+    const data = await response.json();
     if (!response.ok) {
-        throw new Error("Error al obtener los usuarios");
+         Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data.mensaje || "No se pudo obtener los usuarios"
+        });
+        return data;
     }
 
-    return await response.json();
+    return data;
 };
 
 const crearUsuario = async () => {
@@ -35,19 +42,30 @@ const crearUsuario = async () => {
     };
     if (Object.entries(usuario)
         .some(([, valor]) => !valor)) {
-        throw new Error("Completa todos los campos obligatorios para crear un nuevo usuario");
+            Swal.fire({
+                icon: "warning",
+                title: "Atención",
+                text: "Completa todos los campos obligatorios para crear un nuevo usuario"
+            });
+            return;
     }
 
     if(usuario.nombreUsuario.length < 3){
-        throw new Error(
-            "El usuario debe tener al menos 3 caracteres."
-        );
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "El usuario debe tener al menos 3 caracteres"
+        });
+        return;
     }
 
     if(usuario.password.length < 8){
-        throw new Error(
-            "La contraseña debe tener al menos 8 caracteres."
-        );
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "La contraseña debe tener al menos 8 caracteres"
+        });
+        return;
     }
     const response = await fetch(URL_API, {
         method: "POST",
@@ -58,12 +76,27 @@ const crearUsuario = async () => {
         body: JSON.stringify(usuario)
     });
 
-    const data = await response.json();
 
-    if (!response.ok) {
-        throw new Error(data.mensaje || "No se pudo crear el usuario");
+
+    const data = await response.json();
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Usuario creado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
     }
 
+    if (!response.ok) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data.mensaje || "No se pudo crear el usuario"
+        });
+        return data;
+    }
     return data;
 };
 
@@ -79,12 +112,25 @@ const eliminarUsuario = async (id) => {
         }
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.mensaje || "No se pudo eliminar el usuario");
+   const data = await response.json();
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Usuario eliminado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
     }
 
+    if (!response.ok) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data.mensaje || "No se pudo eliminar el usuario"
+        });
+        return data;
+    }
     return data;
 };
 
@@ -114,7 +160,13 @@ const actualizarTextoModal = () => {
 const actualizarUsuario = async (id) => {
 
     if (!id || isNaN(id)) {
-        throw new Error("ID de usuario inválido.");
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "ID de usuario invalido"
+        });
+        return;
+        
     }
 
 
@@ -125,15 +177,21 @@ const actualizarUsuario = async (id) => {
     };
     
     if(usuario.nombreUsuario.length < 3){
-        throw new Error(
-            "El usuario debe tener al menos 3 caracteres."
-        );
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "El usuario debe tener al menos 3 caracteres"
+        });
+        return;
     }
 
     if(usuario.password.length < 8){
-        throw new Error(
-            "La contraseña debe tener al menos 8 caracteres."
-        );
+        Swal.fire({
+            icon: "warning",
+            title: "Atención",
+            text: "La contraseña debe tener al menos 8 caracteres"
+        });
+        return;
     }
 
     const response = await fetch(`${URL_API}/${id}`, {
@@ -147,9 +205,23 @@ const actualizarUsuario = async (id) => {
     });
 
     const data = await response.json();
+    if(response.ok){
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Usuario actualizado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return data;
+    }
 
     if (!response.ok) {
-        throw new Error(data.mensaje || "No se pudo actualizar el usuario");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data.mensaje || "No se pudo actualizado el usuario"
+        });
+        return data;
     }
 
     usuarioEditando = null;
@@ -201,10 +273,24 @@ const mostrarUsuarios = (usuarios) => {
 
         btn_eliminar.addEventListener("click", async () => {
             try {
-                await eliminarUsuario(usuario.id);
-                await cargarUsuarios();
+                const resultado = await Swal.fire({
+                        title: "¿Eliminar usuario?",
+                        text: "Esta acción no se puede deshacer.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Sí, eliminar",
+                        cancelButtonText: "Cancelar"
+                    });
+                if (resultado.isConfirmed){
+                    await eliminarUsuario(usuario.id);
+                    await cargarUsuarios();
+                }
             } catch (error) {
-                alert(error.message);
+                  Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "No se pudo eliminar al usuario"
+                });
             }
         });
 
