@@ -8,8 +8,10 @@ const inputDescripcion = document.getElementById("descripcion");
 const inputPrecio = document.getElementById("precio");
 const inputDuracion = document.getElementById("duracion");
 const tabla = document.getElementById("tablaTratamientos");
+const inputBusqueda = document.getElementById("buscadorTratamientos");
 const token = localStorage.getItem("token");
 let tratamientoEditando = null;
+let tratamientosCargados = [];
 
 const URL_API = "http://localhost:3000/api/tratamientos";
 
@@ -197,6 +199,11 @@ const mostrarTratamientos = (tratamientos) => {
     tabla.innerHTML = "";
     if (!Array.isArray(tratamientos)) return;
 
+    if (tratamientos.length === 0) {
+        tabla.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:#5c7d79;">No se encontraron tratamientos.</td></tr>`;
+        return;
+    }
+
     tratamientos.forEach((tratamiento) => {
         const fila = document.createElement("tr");
         const botones = document.createElement("td");
@@ -252,15 +259,40 @@ const mostrarTratamientos = (tratamientos) => {
     });
 };
 
+const filtrarTratamientos = () => {
+    if (!inputBusqueda) return;
+
+    const texto = inputBusqueda.value.trim().toLowerCase();
+
+    if (!texto) {
+        mostrarTratamientos(tratamientosCargados);
+        return;
+    }
+
+    const filtrados = tratamientosCargados.filter((tratamiento) => {
+        const nombre = String(tratamiento.nombreTratamiento || "").toLowerCase();
+        const descripcion = String(tratamiento.descripcion || "").toLowerCase();
+        return nombre.includes(texto) || descripcion.includes(texto);
+    });
+
+    mostrarTratamientos(filtrados);
+};
+
 const cargarTratamientos = async () => {
     try {
-        mostrarTratamientos(await obtenerTratamientos());
+        const datos = await obtenerTratamientos();
+        tratamientosCargados = Array.isArray(datos) ? datos : [];
+        mostrarTratamientos(tratamientosCargados);
     } catch (error) {
-        tabla.innerHTML = `<tr><td colspan="4">${error.message}</td></tr>`;
+        tabla.innerHTML = `<tr><td colspan="5">${error.message}</td></tr>`;
     }
 };
 
 cargarTratamientos();
+
+if (inputBusqueda) {
+    inputBusqueda.addEventListener("input", filtrarTratamientos);
+}
 
 btnGuardar.addEventListener("click", async () => {
     try {

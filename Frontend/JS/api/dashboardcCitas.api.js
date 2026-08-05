@@ -1,6 +1,4 @@
-
 import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.esm.all.js";
-
 const tbody = document.getElementById("tablaCitas");
 const btn_guardar = document.getElementById("btn_guardar");
 const inputNombre = document.getElementById("nombre");
@@ -12,6 +10,7 @@ const inputTelefono = document.getElementById("numero");
 const inputEmail = document.getElementById("email");
 const selectTratamiento = document.getElementById("tratamiento");
 const form = document.getElementById("formulario");
+const mostrarUser = document.getElementById("admin");
 const buscar = document.getElementById("buscar");
 const btnAbrirModal = document.getElementById("btn_abrir");
 const btnCancelar = document.getElementById("btn_cancelar");
@@ -21,6 +20,7 @@ const token = localStorage.getItem("token");
 
 let citaEditado = null;
 const URL_TRATAMIENTOS = "/api/tratamientos";
+const URL_USUARIOS = "/api/usuarios";
 const URL_CITAS = "/api/citas";
 
 const validarTelefono = (telefono) => {
@@ -59,7 +59,13 @@ const parseResponse = async (response) => {
 const validarEmail = (email) => {
     return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
-
+const obtenerUsuarioConToken = (token) => {
+    return JSON.parse(atob(token.split(".")[1]));
+}
+const mostrarUsuarioAdministrador = () => {
+   const user = obtenerUsuarioConToken(token);
+   mostrarUser.textContent = user.usuario;
+}
 const cargarTratamientosEnSelect = async () => {
     try {
         const response = await fetch(URL_TRATAMIENTOS, {
@@ -75,7 +81,7 @@ const cargarTratamientosEnSelect = async () => {
                 title: "Atención",
                 text: "No se Pudieron cargar los tratamientos"
             });
-            
+            return;
         }
 
         selectTratamiento.innerHTML = '<option value="" selected disabled>Selecciona un tratamiento</option>';
@@ -595,6 +601,7 @@ selectEstado.addEventListener('change', async () => {
 actualizarTarjeta();
 cargarCitas();
 cargarTratamientosEnSelect();
+mostrarUsuarioAdministrador();
 btn_guardar.addEventListener('click', async () => {
     btn_guardar.disabled = true;
     try {
@@ -626,7 +633,6 @@ window.onclick = function(event) {
 }
 
 salir.addEventListener('click', cerrarSesion)
-
 
 if (!token){
     window.location.href = "../Templates/login.html"

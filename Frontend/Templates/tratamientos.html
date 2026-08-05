@@ -25,13 +25,59 @@
       background: radial-gradient(circle at top left, rgba(20, 184, 166, 0.16), transparent 24%), linear-gradient(135deg, #f8fffe 0%, #eaf8f6 100%);
       color: var(--text);
       padding: 32px 20px;
+      transition: padding-left 0.25s ease;
+    }
+
+    body:not(.sidebar-collapsed) {
+      padding-left: 286px;
+    }
+
+    body.sidebar-collapsed {
+      padding-left: 20px;
     }
 
     .page-actions {
       max-width: 1100px;
       margin: 0 auto 18px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar {
+      flex: 1;
+      min-width: 260px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 8px 24px rgba(17, 94, 89, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .search-bar input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--primary-dark);
+      flex-shrink: 0;
     }
 
     .btn-abrir-modal {
@@ -260,6 +306,12 @@
   <h1>Gestión de Tratamientos</h1>
   <div id="sidebar"></div>
   <div class="page-actions">
+    <div class="search-bar">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" class="search-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m1.85-5.15a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+      </svg>
+      <input type="search" id="buscadorTratamientos" placeholder="Buscar por nombre o descripción" aria-label="Buscar tratamientos" />
+    </div>
     <button type="button" id="btn_abrir_modal" class="btn-abrir-modal">+ Agregar tratamiento</button>
   </div>
 
