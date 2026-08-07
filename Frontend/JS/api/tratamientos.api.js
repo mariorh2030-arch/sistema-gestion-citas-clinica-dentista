@@ -8,10 +8,13 @@ const inputDescripcion = document.getElementById("descripcion");
 const inputPrecio = document.getElementById("precio");
 const inputDuracion = document.getElementById("duracion");
 const tabla = document.getElementById("tablaTratamientos");
+const paginacion = document.getElementById("paginacionTratamientos");
 const inputBusqueda = document.getElementById("buscadorTratamientos");
 const token = localStorage.getItem("token");
 let tratamientoEditando = null;
 let tratamientosCargados = [];
+let paginaActual = 1;
+const tratamientosPorPagina = 10;
 
 const URL_API = "http://localhost:3000/api/tratamientos";
 
@@ -195,16 +198,65 @@ const abrirModal = () => {
     }
 };
 
+const mostrarPaginacion = (totalItems) => {
+    if (!paginacion) return;
+
+    paginacion.innerHTML = "";
+    const totalPaginas = Math.ceil(totalItems / tratamientosPorPagina);
+
+    if (totalPaginas <= 1) {
+        return;
+    }
+
+    const btnAnterior = document.createElement("button");
+    btnAnterior.textContent = "Anterior";
+    btnAnterior.disabled = paginaActual === 1;
+    btnAnterior.addEventListener("click", () => {
+        paginaActual = Math.max(1, paginaActual - 1);
+        mostrarTratamientos(tratamientosCargados);
+    });
+    paginacion.appendChild(btnAnterior);
+
+    for (let i = 1; i <= totalPaginas; i += 1) {
+        const boton = document.createElement("button");
+        boton.textContent = i;
+        if (i === paginaActual) {
+            boton.classList.add("pagina-activa");
+        }
+        boton.addEventListener("click", () => {
+            paginaActual = i;
+            mostrarTratamientos(tratamientosCargados);
+        });
+        paginacion.appendChild(boton);
+    }
+
+    const btnSiguiente = document.createElement("button");
+    btnSiguiente.textContent = "Siguiente";
+    btnSiguiente.disabled = paginaActual === totalPaginas;
+    btnSiguiente.addEventListener("click", () => {
+        paginaActual = Math.min(totalPaginas, paginaActual + 1);
+        mostrarTratamientos(tratamientosCargados);
+    });
+    paginacion.appendChild(btnSiguiente);
+};
+
 const mostrarTratamientos = (tratamientos) => {
     tabla.innerHTML = "";
     if (!Array.isArray(tratamientos)) return;
 
-    if (tratamientos.length === 0) {
+    const inicio = (paginaActual - 1) * tratamientosPorPagina;
+    const fin = inicio + tratamientosPorPagina;
+    const tratamientosPagina = tratamientos.slice(inicio, fin);
+
+    if (tratamientos.length === 0 || tratamientosPagina.length === 0) {
         tabla.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:#5c7d79;">No se encontraron tratamientos.</td></tr>`;
+        mostrarPaginacion(0);
         return;
     }
 
-    tratamientos.forEach((tratamiento) => {
+    mostrarPaginacion(tratamientos.length);
+
+    tratamientosPagina.forEach((tratamiento) => {
         const fila = document.createElement("tr");
         const botones = document.createElement("td");
         const btnEliminar = document.createElement("button");
@@ -265,6 +317,7 @@ const filtrarTratamientos = () => {
     const texto = inputBusqueda.value.trim().toLowerCase();
 
     if (!texto) {
+        paginaActual = 1;
         mostrarTratamientos(tratamientosCargados);
         return;
     }
@@ -275,6 +328,7 @@ const filtrarTratamientos = () => {
         return nombre.includes(texto) || descripcion.includes(texto);
     });
 
+    paginaActual = 1;
     mostrarTratamientos(filtrados);
 };
 
@@ -282,6 +336,7 @@ const cargarTratamientos = async () => {
     try {
         const datos = await obtenerTratamientos();
         tratamientosCargados = Array.isArray(datos) ? datos : [];
+        paginaActual = 1;
         mostrarTratamientos(tratamientosCargados);
     } catch (error) {
         tabla.innerHTML = `<tr><td colspan="5">${error.message}</td></tr>`;

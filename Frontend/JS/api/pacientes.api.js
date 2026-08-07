@@ -9,10 +9,27 @@ const inputFecha = document.getElementById("fecha");
 const inputCorreo = document.getElementById("correo")
 const inputTelefono = document.getElementById("numero");
 const tabla = document.getElementById("tablaPacientes");
+const paginacion = document.getElementById("paginacionPacientes");
 const token = localStorage.getItem("token");
 let pacienteEditando = null;
+let pacientesCargados = [];
+let paginaActual = 1;
+const pacientesPorPagina = 10;
 
 const URL_API = "http://localhost:3000/api/pacientes";
+
+const parseResponse = async (response) => {
+    const text = await response.text();
+    if (!text) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        return text;
+    }
+};
 
 const validarEmail = (email) => {
     return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -28,28 +45,32 @@ export const obtenerPacientes = async () => {
             Authorization: `Bearer ${token}`
         }
     });
-    const data = await response.json()
-    if(!response.ok)
-    {
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
         Swal.fire({
             icon: "error",
             title: "Oops...",
             text: data?.mensaje || "Error al obtener los pacientes"
         });
-        return data;
+        return [];
     }
-    return data;
+
+    return Array.isArray(data) ? data : [];
 }
+
+const obtenerPacienteDesdeFormulario = () => ({
+    nombre: inputNombre.value.trim(),
+    apellidos: inputApellidos.value.trim(),
+    telefono: inputTelefono.value.trim(),
+    correo: inputCorreo.value.trim(),
+    fechaNacimiento: inputFecha.value
+});
 
 export const crearPaciente = async () => {
 
-    const paciente = {
-        nombre: inputNombre.value,
-        apellidos: inputApellidos.value,
-        telefono: inputTelefono.value,
-        correo: inputCorreo.value,
-        fechaNacimiento: inputFecha.value
-    }
+    const paciente = obtenerPacienteDesdeFormulario();
 
     if(Object.entries(paciente)
         .filter(([campo]) => campo !== "correo")
@@ -90,29 +111,36 @@ export const crearPaciente = async () => {
     });
 
     const data = await parseResponse(response);
-        if(response.ok){
-            Swal.fire({
-                icon: "success",
-                title: "¡Correcto!",
-                text: "Paciente creado correctamente",
-                confirmButtonText: "Aceptar"
-            });
-            return data;
-        }
-    
-        if (!response.ok) {
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "No se pudo crear un nuevo paciente"
-            });
-            return data;
-        }
+
+    if (response.ok) {
+        const pacienteCreado = {
+            id: data?.insertId ?? Date.now(),
+            ...paciente
+        };
+
+        pacientesCargados = [pacienteCreado, ...pacientesCargados];
+        paginaActual = 1;
+        mostrarPacientes(pacientesCargados);
+
+        Swal.fire({
+            icon: "success",
+            title: "¡Correcto!",
+            text: "Paciente creado correctamente",
+            confirmButtonText: "Aceptar"
+        });
+        return pacienteCreado;
+    }
+
+    Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: data?.mensaje || "No se pudo crear un nuevo paciente"
+    });
     return data;
 }
 
 const eliminarPacientes = async (id) => {
-    const respuesta = await fetch(`http://localhost:3000/api/pacientes/${id}`, {
+    const response = await fetch(`http://localhost:3000/api/pacientes/${id}`, {
         method: "DELETE",
         headers: {
             Authorization: `Bearer ${token}`
@@ -120,7 +148,7 @@ const eliminarPacientes = async (id) => {
     });
 
     const data = await parseResponse(response);
-    if(response.ok){
+    if (response.ok) {
         Swal.fire({
             icon: "success",
             title: "¡Correcto!",
@@ -130,14 +158,11 @@ const eliminarPacientes = async (id) => {
         return data;
     }
 
-    if (!response.ok) {
-        Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: "No se pudo eliminar al paciente"
-        });
-        return data;
-    }
+    Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: data?.mensaje || "No se pudo eliminar al paciente"
+    });
     return data;
 }
 const mostrarPacientesForm = (paciente) => {
@@ -156,14 +181,7 @@ const limpiarFormulario = () => {
 }
 
 const actualizarPaciente = async (id) => {
-    const paciente = {
-        nombre: inputNombre.value,
-        apellidos: inputApellidos.value,
-        telefono: inputTelefono.value,
-        correo: inputCorreo.value,
-        fechaNacimiento: inputFecha.value
-    }
-
+    const paciente = obtenerPacienteDesdeFormulario();
 
     if(!validarEmail(paciente.correo)){
         Swal.fire({
@@ -192,8 +210,8 @@ const actualizarPaciente = async (id) => {
         body: JSON.stringify(paciente)
     });
 
-    const data = response.json();
-    if(response.ok){
+    const data = await parseResponse(response);
+    if (response.ok) {
         Swal.fire({
             icon: "success",
             title: "¡Correcto!",
@@ -202,17 +220,56 @@ const actualizarPaciente = async (id) => {
         });
         return data;
     }
-    if(!response.ok){
-        Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: data.mensaje || "No se pudo editar al paciente"
-        });
-        return data;
-    }
-    pacienteEditando = null;
+
+    Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: data?.mensaje || "No se pudo editar al paciente"
+    });
     return data;
 }
+const mostrarPaginacion = (totalItems) => {
+    if (!paginacion) return;
+
+    paginacion.innerHTML = "";
+    const totalPaginas = Math.ceil(totalItems / pacientesPorPagina);
+
+    if (totalPaginas <= 1) {
+        return;
+    }
+
+    const btnAnterior = document.createElement("button");
+    btnAnterior.textContent = "Anterior";
+    btnAnterior.disabled = paginaActual === 1;
+    btnAnterior.addEventListener("click", () => {
+        paginaActual = Math.max(1, paginaActual - 1);
+        mostrarPacientes(pacientesCargados);
+    });
+    paginacion.appendChild(btnAnterior);
+
+    for (let i = 1; i <= totalPaginas; i += 1) {
+        const boton = document.createElement("button");
+        boton.textContent = i;
+        if (i === paginaActual) {
+            boton.classList.add("pagina-activa");
+        }
+        boton.addEventListener("click", () => {
+            paginaActual = i;
+            mostrarPacientes(pacientesCargados);
+        });
+        paginacion.appendChild(boton);
+    }
+
+    const btnSiguiente = document.createElement("button");
+    btnSiguiente.textContent = "Siguiente";
+    btnSiguiente.disabled = paginaActual === totalPaginas;
+    btnSiguiente.addEventListener("click", () => {
+        paginaActual = Math.min(totalPaginas, paginaActual + 1);
+        mostrarPacientes(pacientesCargados);
+    });
+    paginacion.appendChild(btnSiguiente);
+};
+
 const mostrarPacientes = (pacientes) => {
     tabla.innerHTML= "";
 
@@ -221,7 +278,19 @@ const mostrarPacientes = (pacientes) => {
         return;
     }
 
-    pacientes.forEach((paciente) => {
+    const inicio = (paginaActual - 1) * pacientesPorPagina;
+    const fin = inicio + pacientesPorPagina;
+    const pacientesPagina = pacientes.slice(inicio, fin);
+
+    if (pacientesPagina.length === 0) {
+        tabla.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:#5c7d79;">No se encontraron pacientes.</td></tr>`;
+        mostrarPaginacion(0);
+        return;
+    }
+
+    mostrarPaginacion(pacientes.length);
+
+    pacientesPagina.forEach((paciente) => {
         const id = paciente.id;
         const fila = document.createElement("tr");
         const btn_eliminar = document.createElement("button");
@@ -245,12 +314,14 @@ const mostrarPacientes = (pacientes) => {
         btn_eliminar.title = "Eliminar";
         btn_editar.title = "Editar";
 
+        const fechaNacimiento = paciente.fechaNacimiento ? String(paciente.fechaNacimiento).split("T")[0] : "";
+
         fila.innerHTML = `
             <td>${paciente.nombre}</td>
             <td>${paciente.apellidos}</td>
             <td>${paciente.telefono}</td>
             <td>${paciente.correo}</td>
-            <td>${paciente.fechaNacimiento.split("T")[0]}</td>
+            <td>${fechaNacimiento}</td>
         `;
 
         btn_eliminar.addEventListener('click', async () => {
@@ -290,9 +361,17 @@ const mostrarPacientes = (pacientes) => {
 
 }
 const cargarPacientes = async () => {
-    const pacientes = await obtenerPacientes();
-    mostrarPacientes(pacientes);
-}
+    try {
+        const pacientes = await obtenerPacientes();
+        pacientesCargados = Array.isArray(pacientes) ? pacientes : [];
+        paginaActual = 1;
+        mostrarPacientes(pacientesCargados);
+    } catch (error) {
+        tabla.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:#5c7d79;">No se pudieron cargar los pacientes.</td></tr>`;
+        console.error(error);
+    }
+};
+
 cargarPacientes();
 
 const cerrarModal = () => {
@@ -307,16 +386,25 @@ const abrirModal = () => {
     }
 };
 
-btn_guardar.addEventListener('click', async () => { 
-    if(pacienteEditando){
-        await actualizarPaciente(pacienteEditando);
+btn_guardar.addEventListener('click', async () => {
+    try {
+        if (pacienteEditando) {
+            await actualizarPaciente(pacienteEditando);
+        } else {
+            await crearPaciente();
+        }
+
         await cargarPacientes();
-    } else {
-        await crearPaciente();
-        await cargarPacientes();
+        limpiarFormulario();
+        pacienteEditando = null;
+        cerrarModal();
+    } catch (error) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message || "No se pudo guardar el paciente"
+        });
     }
-    limpiarFormulario();
-    cerrarModal();
 });
 
 if (btnAbrirModal) {

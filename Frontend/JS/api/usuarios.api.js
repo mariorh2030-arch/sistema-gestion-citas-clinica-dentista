@@ -7,10 +7,14 @@ const inputNombreUsuario = document.getElementById("nombreUsuario");
 const inputPassword = document.getElementById("password");
 const inputRol = document.getElementById("rol");
 const tabla = document.getElementById("tablaUsuarios");
+const paginacion = document.getElementById("paginacionUsuarios");
 const modalTitulo = document.getElementById("modalTitulo");
 const inputBuscar = document.getElementById("buscarUsuario");
 const token = localStorage.getItem("token");
 let usuarioEditando = null;
+let usuariosCargados = [];
+let paginaActual = 1;
+const usuariosPorPagina = 10;
 
 const URL_API = "http://localhost:3000/api/usuarios";
 
@@ -228,6 +232,48 @@ const actualizarUsuario = async (id) => {
     return data;
 };
 
+const mostrarPaginacion = (totalItems) => {
+    if (!paginacion) return;
+
+    paginacion.innerHTML = "";
+    const totalPaginas = Math.ceil(totalItems / usuariosPorPagina);
+
+    if (totalPaginas <= 1) {
+        return;
+    }
+
+    const btnAnterior = document.createElement("button");
+    btnAnterior.textContent = "Anterior";
+    btnAnterior.disabled = paginaActual === 1;
+    btnAnterior.addEventListener("click", () => {
+        paginaActual = Math.max(1, paginaActual - 1);
+        mostrarUsuarios(usuariosCargados);
+    });
+    paginacion.appendChild(btnAnterior);
+
+    for (let i = 1; i <= totalPaginas; i += 1) {
+        const boton = document.createElement("button");
+        boton.textContent = i;
+        if (i === paginaActual) {
+            boton.classList.add("pagina-activa");
+        }
+        boton.addEventListener("click", () => {
+            paginaActual = i;
+            mostrarUsuarios(usuariosCargados);
+        });
+        paginacion.appendChild(boton);
+    }
+
+    const btnSiguiente = document.createElement("button");
+    btnSiguiente.textContent = "Siguiente";
+    btnSiguiente.disabled = paginaActual === totalPaginas;
+    btnSiguiente.addEventListener("click", () => {
+        paginaActual = Math.min(totalPaginas, paginaActual + 1);
+        mostrarUsuarios(usuariosCargados);
+    });
+    paginacion.appendChild(btnSiguiente);
+};
+
 const mostrarUsuarios = (usuarios) => {
     tabla.innerHTML = "";
 
@@ -236,12 +282,24 @@ const mostrarUsuarios = (usuarios) => {
         return;
     }
 
-    const termino = inputBuscar.value.toLowerCase();
+    const termino = inputBuscar ? inputBuscar.value.toLowerCase() : "";
     const usuariosFiltrados = usuarios.filter((usuario) => {
-        return usuario.nombreUsuario.toLowerCase().includes(termino) || usuario.rol.toLowerCase().includes(termino);
+        return String(usuario.nombreUsuario || "").toLowerCase().includes(termino) || String(usuario.rol || "").toLowerCase().includes(termino);
     });
 
-    usuariosFiltrados.forEach((usuario) => {
+    const inicio = (paginaActual - 1) * usuariosPorPagina;
+    const fin = inicio + usuariosPorPagina;
+    const usuariosPagina = usuariosFiltrados.slice(inicio, fin);
+
+    if (usuariosFiltrados.length === 0 || usuariosPagina.length === 0) {
+        tabla.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:24px; color:#5c7d79;">No se encontraron usuarios.</td></tr>`;
+        mostrarPaginacion(0);
+        return;
+    }
+
+    mostrarPaginacion(usuariosFiltrados.length);
+
+    usuariosPagina.forEach((usuario) => {
         const fila = document.createElement("tr");
         const botones = document.createElement("td");
         const btn_eliminar = document.createElement("button");
@@ -310,7 +368,9 @@ const mostrarUsuarios = (usuarios) => {
 
 const cargarUsuarios = async () => {
     const usuarios = await obtenerUsuarios();
-    mostrarUsuarios(usuarios);
+    usuariosCargados = Array.isArray(usuarios) ? usuarios : [];
+    paginaActual = 1;
+    mostrarUsuarios(usuariosCargados);
 };
 
 const cerrarModal = () => {

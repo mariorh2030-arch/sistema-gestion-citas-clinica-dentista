@@ -20,7 +20,8 @@ const obtenerCita = async () => {
         INNER JOIN pacientes p
             ON c.pacienteId = p.id
         INNER JOIN tratamientos t
-            ON c.tratamientoId = t.id;`
+            ON c.tratamientoId = t.id 
+        ORDER BY c.fecha DESC;`
     )
     return rows;
 }

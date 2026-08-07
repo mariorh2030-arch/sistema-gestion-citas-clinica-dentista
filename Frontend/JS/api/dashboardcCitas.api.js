@@ -17,6 +17,10 @@ const btnCancelar = document.getElementById("btn_cancelar");
 const selectEstado = document.getElementById("selectFiltroEstado");
 const salir = document.getElementById("salir");
 const token = localStorage.getItem("token");
+const paginacion = document.getElementById("paginacion");
+let paginaActual = 1;
+const citasPorPagina = 10;
+let citasFiltradas = [];
 
 let citaEditado = null;
 const URL_TRATAMIENTOS = "/api/tratamientos";
@@ -66,6 +70,58 @@ const mostrarUsuarioAdministrador = () => {
    const user = obtenerUsuarioConToken(token);
    mostrarUser.textContent = user.usuario;
 }
+const mostrarPaginacion = (totalCitas) => {
+
+    paginacion.innerHTML = "";
+
+    const totalPaginas = Math.ceil(totalCitas / citasPorPagina);
+
+    if (totalPaginas <= 1) {
+        return;
+    }
+
+    const btnAnterior = document.createElement("button");
+    btnAnterior.textContent = "Anterior";
+
+    btnAnterior.disabled = paginaActual === 1;
+
+    btnAnterior.addEventListener("click", () => {
+        paginaActual--;
+        mostrarCitas(citasFiltradas);
+    });
+
+    paginacion.appendChild(btnAnterior);
+
+    for (let i = 1; i <= totalPaginas; i++) {
+
+        const boton = document.createElement("button");
+
+        boton.textContent = i;
+
+        if (i === paginaActual) {
+            boton.classList.add("pagina-activa");
+        }
+
+        boton.addEventListener("click", () => {
+            paginaActual = i;
+            mostrarCitas(citasFiltradas);
+        });
+
+        paginacion.appendChild(boton);
+    }
+
+    const btnSiguiente = document.createElement("button");
+    btnSiguiente.textContent = "Siguiente";
+
+    btnSiguiente.disabled = paginaActual === totalPaginas;
+
+    btnSiguiente.addEventListener("click", () => {
+        paginaActual++;
+        mostrarCitas(citasFiltradas);
+    });
+
+    paginacion.appendChild(btnSiguiente);
+};
 const cargarTratamientosEnSelect = async () => {
     try {
         const response = await fetch(URL_TRATAMIENTOS, {
@@ -439,6 +495,10 @@ const actualizarEstadoCita = async (id, estado) => {
 const mostrarCitas = (citas) => {
     tbody.innerHTML = "";
 
+    const inicio = (paginaActual - 1) * citasPorPagina;
+    const fin = inicio + citasPorPagina;
+    const citasPagina = Array.isArray(citas) ? citas.slice(inicio, fin) : [];
+
     if (!Array.isArray(citas) || citas.length === 0) {
         const filaVacia = document.createElement("tr");
         const tdVacio = document.createElement("td");
@@ -446,10 +506,11 @@ const mostrarCitas = (citas) => {
         tdVacio.textContent = "No se encontraron citas.";
         filaVacia.appendChild(tdVacio);
         tbody.appendChild(filaVacia);
+        mostrarPaginacion(0);
         return;
     }
 
-    citas.forEach((cita) => {
+    citasPagina.forEach((cita) => {
             
             const fila = document.createElement("tr");
 
@@ -572,7 +633,8 @@ const mostrarCitas = (citas) => {
             fila.appendChild(tdEstado)
             fila.appendChild(tdAcciones);
             tbody.appendChild(fila);
-        })
+        });
+        mostrarPaginacion(citas.length);
     }
 
 
@@ -582,7 +644,9 @@ btnCancelar.addEventListener("click", cerrarModal);
 const cargarCitas = async () => {
     try {
         const citas = await buscarCita();
-        mostrarCitas(citas);
+        citasFiltradas = citas;
+        paginaActual = 1;
+        mostrarCitas(citasFiltradas);
     } catch (error) {
         Swal.fire({
             icon: "error",
