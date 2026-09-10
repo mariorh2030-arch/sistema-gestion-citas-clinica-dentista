@@ -1,8 +1,8 @@
+import "dotenv/config";
 import app from "./app.js";
-import dotenv from "dotenv";
 import pool from "./config/db.js"
 
-dotenv.config();
+import "./Controllers/Recordatorio.controller.js";
 
 const PORT = process.env.PORT || 3000;
 

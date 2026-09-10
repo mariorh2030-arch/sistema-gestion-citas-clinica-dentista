@@ -7,10 +7,12 @@ import citasRoutes from "./Routes/citas.routes.js";
 import tratamientosRoutes from "./Routes/tratamientos.routes.js";
 import autentificacion from "./Routes/auth.routes.js";
 import usuariosRoutes from "./Routes/usuarios.routes.js";
+import webhookRoutes from "./Routes/Webhooks.routes.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +22,7 @@ app.use("/api/citas", citasRoutes);
 app.use("/api/tratamientos", tratamientosRoutes);
 app.use("/api/autentificar", autentificacion);
 app.use("/api/usuarios", usuariosRoutes);
+app.use("/", webhookRoutes);
 
 app.use(express.static(path.join(__dirname, "../../Frontend")));
 

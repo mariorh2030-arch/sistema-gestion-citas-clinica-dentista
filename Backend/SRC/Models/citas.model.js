@@ -71,14 +71,15 @@ const insertarCita = async (
 ) => {
     const [rows] = await pool.query(
         `INSERT INTO citas
-        (pacienteId, tratamientoId, fecha, hora, estado)
-        VALUES (?, ?, ?, ?, ?)`,
+        (pacienteId, tratamientoId, fecha, hora, estado, recordatorio)
+        VALUES (?, ?, ?, ?, ?, ?)` ,
         [
             pacienteId,
             tratamientoId,
             fecha,
             hora,
-            "Pendiente"
+            "Pendiente",
+            0
         ]
     );
 
@@ -122,8 +123,31 @@ const eliminarCita = async (id) =>{
     return rows;
 }
 
+ const  obtenerCitasProximas24h = async () => {
+    const [rows] = await pool.query(`
+            SELECT c.id, p.telefono, p.nombre, c.fecha, c.hora
+            FROM citas c
+            INNER JOIN pacientes p ON c.pacienteId = p.id
+            WHERE TIMESTAMP(c.fecha, c.hora) BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 24 HOUR)
+            AND LOWER(c.estado) = 'pendiente' AND c.recordatorio = 0
+    `);
+    return rows;
+  }
+   const  marcarRecordatorioEnviado =  async (id) => {
+        await pool.query('UPDATE citas SET recordatorio = 1 WHERE id = ?', [id]);
+    }
 
-
+ const actualizarEstadoPorTelefono = async (telefono, nuevoEstado) => {
+         const [resultado] = await pool.query(
+            `UPDATE citas c
+             INNER JOIN pacientes p ON c.pacienteId = p.id
+             SET c.estado = ?
+                         WHERE RIGHT(REPLACE(REPLACE(REPLACE(p.telefono, '+', ''), ' ', ''), '-', ''), 10) = ?
+                         AND LOWER(c.estado) = 'pendiente'`,
+      [nuevoEstado, telefono]
+    );
+        return resultado;
+  }
 export { 
     obtenerPacientePorTelefono, 
     insertarCita, 
@@ -132,5 +156,8 @@ export {
     obtenerCitaPorId, 
     editarCita, 
     actualizarEstado,
-    obtenerCitasDelDia
+    obtenerCitasDelDia,
+    obtenerCitasProximas24h,
+    marcarRecordatorioEnviado,
+    actualizarEstadoPorTelefono
 }

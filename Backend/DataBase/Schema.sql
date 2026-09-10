@@ -19,7 +19,8 @@ CREATE TABLE citas(
     fecha date NOT NULL, 
     hora time NOT NULL,
     duracion INT NOT NULL DEFAULT 30,
-    estado varchar(20) NOT NULL
+    estado varchar(20) NOT NULL,
+    recordatorio INT NOT NULL
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE tratamientos(

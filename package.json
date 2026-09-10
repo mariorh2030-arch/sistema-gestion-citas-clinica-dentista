@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "sweetalert2": "^11.26.25"
+    "node-cron": "^4.6.0",
+    "sweetalert2": "^11.26.25",
+    "twilio": "^6.1.0"
   }
 }
