@@ -301,9 +301,11 @@
       }
     }
   </style>
+    <link rel="stylesheet" href="../Css/clinicaTheme.css">
 </head>
-<body>
-  <h1>Gestión de Tratamientos</h1>
+<body data-page="tratamientos">
+    <div class="page-heading"><p class="eyebrow">Sonríe Dental / Gestión clínica</p><h1>Tratamientos</h1><p>Consulta y administra los tratamientos de la clínica.</p></div>
+
   <div id="sidebar"></div>
   <div class="page-actions">
     <div class="search-bar">
@@ -347,6 +349,7 @@
     </div>
   </div>
 
+  <div class="dashboard">
   <table>
     <thead>
       <tr>
@@ -359,6 +362,7 @@
     </thead>
     <tbody id="tablaTratamientos"></tbody>
   </table>
+  </div>
   <div id="paginacionTratamientos"></div>
 
   <script type="module" src="../JS/api/tratamientos.api.js"></script>
